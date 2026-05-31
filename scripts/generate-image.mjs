@@ -110,6 +110,22 @@ const PRESETS = {
       "ABSOLUTELY NO text, NO labels, NO map pins, NO markers — just the illustrated landscape map, leaving clean space along the coast. " +
       STYLE,
   },
+  sme: {
+    out: "sme.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory product photo communicating: a small business's phone line is answered automatically " +
+      "by a friendly AI voice agent, 24×7, so the owner never misses a customer. " +
+      "Scene: a small warm Kerala business — a cosy café/shop — with a young entrepreneur in the softly-blurred background " +
+      "calmly working and serving a customer, relaxed because the calls are handled for them. " +
+      "In sharp focus in the foreground, a hand holds a smartphone showing an 'SME Telephony AI' call screen: at the top the " +
+      "business name 'Spice Garden Café' with a label 'AI Assistant · Live · 24×7'; a glowing voice waveform in the middle; " +
+      "and a short call transcript of two chat bubbles — a caller bubble reading 'Are you open now?' and an AI reply bubble " +
+      "reading 'Yes! Open till 11 PM, and we deliver.' — plus a small green tag 'Answered by AI'. " +
+      "Clean modern white-and-green call UI, crisp legible text, photoreal, shallow depth of field with the phone screen sharp. " +
+      "Meaning obvious at a glance: customers call, and the AI answers and helps on behalf of the business. " +
+      STYLE,
+  },
   bloom: {
     out: "bloom.png",
     aspect: "16:9",
