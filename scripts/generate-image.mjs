@@ -110,6 +110,23 @@ const PRESETS = {
       "ABSOLUTELY NO text, NO labels, NO map pins, NO markers — just the illustrated landscape map, leaving clean space along the coast. " +
       STYLE,
   },
+  askbox: {
+    out: "askbox.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory product photo of a beautifully designed AI ENQUIRY KIOSK at a railway station in Kerala. " +
+      "Centre of frame: a sleek, premium free-standing interactive kiosk — a large VERTICAL touchscreen on an elegant minimal " +
+      "stand with a rounded white-and-green body, a small camera and microphone at the top, softly glowing. " +
+      "On the big screen, a friendly assistant UI titled 'AskBox AI' shows, top to bottom: a glowing circular voice waveform with a " +
+      "prompt 'Tap & speak', a small line of language chips 'Malayalam · English · Hindi · Tamil', and a live 'Next Trains' board " +
+      "listing two or three entries such as 'Venad Exp → Thiruvananthapuram · Plat 2 · 14:35 · On time' and " +
+      "'Maveli Exp → Kollam · Plat 1 · +10 min'. " +
+      "A traveler — a friendly middle-aged man with a shoulder bag — stands beside the kiosk speaking to it, looking helped and at ease. " +
+      "Background: a clean, bright Kerala railway station concourse with platforms, a train and signage, softly blurred. " +
+      "Modern, warm, helpful mood; crisp legible UI text; photoreal; shallow depth of field with the kiosk screen sharp. " +
+      "Meaning obvious at a glance: walk up, ask aloud, get live travel information. " +
+      STYLE,
+  },
   sme: {
     out: "sme.png",
     aspect: "16:9",
