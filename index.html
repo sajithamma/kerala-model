@@ -155,7 +155,16 @@
   .srow .sno{font-family:"Space Mono",monospace;font-size:11px;color:var(--emerald);visibility:hidden}
   .srow.near .sno{visibility:visible}
   .srow .skm{font-family:"Space Mono",monospace;font-size:11.5px;color:#0b3a2c;opacity:.78;margin-left:auto}
-  .viz.map .panel.tall,.viz.ledger .panel.tall,.viz.report .panel.tall{height:172px}
+  .viz.map .panel.tall,.viz.ledger .panel.tall,.viz.report .panel.tall,.viz.quiz .panel.tall{height:172px}
+  /* ExamCoach (quiz) variant */
+  .viz.quiz{background:linear-gradient(180deg,#eef1f6 0%,#e9eef0 60%,#e3eae9 100%)}
+  .qrow{display:flex;align-items:center;gap:9px;font-size:12.5px;color:#0b3a2c;margin-bottom:5px}
+  .qrow .qlbl{min-width:84px;font-weight:600}
+  .qrow .qbar{flex:1;height:8px;background:#dde3df;border-radius:5px;overflow:hidden}
+  .qrow .qfill{display:block;height:100%;width:0;background:var(--emerald);border-radius:5px;transition:width .4s ease}
+  .qrow.weak .qfill{background:var(--coral)}
+  .qrow .qval{font-family:"Space Mono",monospace;font-weight:700;min-width:40px;text-align:right}
+  .qrow.weak .qval{color:var(--coral)}
   .viz.report{background:linear-gradient(180deg,#eef2f5 0%,#e9efee 60%,#e3eae7 100%)}
   /* TripMate: generated map background + three.js overlay */
   .viz.trip{height:auto;aspect-ratio:16/9;background:#bcdfe8}
@@ -582,6 +591,20 @@
       <div class="foot">
         <div class="row"><span class="lbl">Impact</span><span class="val">Brings exam support to every home, including first-generation learners and parents who can't tutor themselves.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">General Education Dept</span><span class="chip">KITE</span><span class="chip">SCERT</span></span></div>
+      </div>
+
+      <div class="viz quiz" id="examviz">
+        <canvas id="exam-canvas"></canvas>
+        <div class="vlabel"><span class="dot"></span> AI · call-in exam coach</div>
+        <div class="readout"><div class="big" id="ex-score">0<span>/100</span></div><div class="sub" id="ex-sub">9th Std · Physics</div></div>
+        <div class="panel tall">
+          <div class="ptitle"><span>Parent report · topic strengths</span><span class="leg"><b>● strong</b> &nbsp; <i>● needs work</i></span></div>
+          <div class="qrow" data-i="0"><span class="qlbl">Motion</span><span class="qbar"><span class="qfill" id="q-0"></span></span><span class="qval" id="qv-0">—</span></div>
+          <div class="qrow" data-i="1"><span class="qlbl">Light</span><span class="qbar"><span class="qfill" id="q-1"></span></span><span class="qval" id="qv-1">—</span></div>
+          <div class="qrow weak" data-i="2"><span class="qlbl">Sound</span><span class="qbar"><span class="qfill" id="q-2"></span></span><span class="qval" id="qv-2">—</span></div>
+          <div class="qrow weak" data-i="3"><span class="qlbl">Electricity</span><span class="qbar"><span class="qfill" id="q-3"></span></span><span class="qval" id="qv-3">—</span></div>
+          <div class="trow status" id="q-statusrow"><span class="tlbl">Report</span><span class="tval" id="q-status">quiz in progress…</span></div>
+        </div>
       </div>
     </article>
 
@@ -1787,6 +1810,149 @@ function loop(){
   elSub.textContent='Varkala → '+DEST[active].name;
 
   renderer.render(scene,camera);
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const wrap=document.getElementById('examviz');
+const canvas=document.getElementById('exam-canvas');
+const elScore=document.getElementById('ex-score');
+const qfills=[0,1,2,3].map(i=>document.getElementById('q-'+i));
+const qvals=[0,1,2,3].map(i=>document.getElementById('qv-'+i));
+const qStatus=document.getElementById('q-status'), qStatusRow=document.getElementById('q-statusrow');
+const clampE=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+const TOPICS=[{t:'Motion',s:85,w:false},{t:'Light',s:78,w:false},{t:'Sound',s:60,w:true},{t:'Electricity',s:48,w:true}];
+const FINAL=72;
+const QS=['SI unit of force?','Newton’s first law?','Define acceleration','Speed of light?','A good conductor?'];
+const CORR=[1,1,0,1,1];
+
+const rendererE=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+rendererE.setPixelRatio(Math.min(devicePixelRatio,2));
+const sceneE=new THREE.Scene();
+const cameraE=new THREE.PerspectiveCamera(42,1,0.1,200);
+sceneE.add(new THREE.HemisphereLight(0xffffff,0xc7cdc2,1.1));
+const dlE=new THREE.DirectionalLight(0xffffff,.7); dlE.position.set(2,4,9); sceneE.add(dlE);
+const CAMZE=14, WW=17, WH=9;
+const worldE=new THREE.Group(); sceneE.add(worldE);
+
+const ESW=460,ESH=900;
+const esc=document.createElement('canvas'); esc.width=ESW; esc.height=ESH; const ex=esc.getContext('2d');
+const escTex=new THREE.CanvasTexture(esc); escTex.anisotropy=4;
+function ERR(a,b,w,h,r){ex.beginPath();ex.roundRect(a,b,w,h,r);}
+function gauge(cx,cy,R,frac,score){
+  ex.lineWidth=20; ex.strokeStyle='#d7ddda'; ex.beginPath(); ex.arc(cx,cy,R,0,Math.PI*2); ex.stroke();
+  ex.strokeStyle=frac<0.5?'#cf8a1a':'#0f5132'; ex.lineCap='round';
+  ex.beginPath(); ex.arc(cx,cy,R,-Math.PI/2,-Math.PI/2+Math.PI*2*frac); ex.stroke();
+  ex.fillStyle='#0b3a2c'; ex.textAlign='center'; ex.textBaseline='middle';
+  ex.font='800 70px system-ui,sans-serif'; ex.fillText(score,cx,cy-4);
+  ex.font='600 24px system-ui,sans-serif'; ex.fillStyle='#7d8c84'; ex.fillText('/ 100',cx,cy+42);
+}
+function drawExam(p,t){
+  ex.fillStyle='#eef1f3'; ex.fillRect(0,0,ESW,ESH);
+  ex.fillStyle='#0f5132'; ex.fillRect(0,0,ESW,116);
+  ex.fillStyle='#fff'; ex.font='700 30px system-ui,sans-serif'; ex.textAlign='left'; ex.textBaseline='alphabetic'; ex.fillText('ExamCoach AI',28,52);
+  ex.fillStyle='#bfe6cf'; ex.font='500 20px system-ui,sans-serif'; ex.fillText('9th Std · Physics · voice quiz',28,84);
+  if(p<1.0){
+    ex.textAlign='center';
+    ex.fillStyle='#5d6f66'; ex.font='600 24px system-ui,sans-serif'; ex.fillText('Choose class & subject',ESW/2,200);
+    for(const [txt,yy] of [['Class 9',300],['Physics',380]]){ex.fillStyle='#0f5132';ERR(90,yy,ESW-180,60,30);ex.fill();ex.fillStyle='#fff';ex.font='700 26px system-ui,sans-serif';ex.fillText(txt+'  ✓',ESW/2,yy+39);}
+    ex.fillStyle='#7d8c84'; ex.font='500 20px system-ui,sans-serif'; ex.fillText('Calling ExamCoach…',ESW/2,500);
+    return;
+  }
+  const sFrac=clampE((p-1)/5.5,0,1); const score=Math.round(sFrac*FINAL);
+  gauge(ESW/2,290,96,sFrac,score);
+  const qi=clampE(Math.floor((p-1)/1.1),0,4);
+  for(let j=0;j<5;j++){const cx=ESW/2-128+j*64; ex.beginPath(); ex.arc(cx,430,16,0,7);
+    if(j<qi||p>6.5){ex.fillStyle=CORR[j]?'#0f5132':'#cf472f';ex.fill();ex.strokeStyle='#fff';ex.lineWidth=3;ex.beginPath();
+      if(CORR[j]){ex.moveTo(cx-7,430);ex.lineTo(cx-2,436);ex.lineTo(cx+8,425);}else{ex.moveTo(cx-6,424);ex.lineTo(cx+6,436);ex.moveTo(cx+6,424);ex.lineTo(cx-6,436);}ex.stroke();}
+    else{ex.fillStyle=(j===qi)?'#cfe0d7':'#dde3df';ex.fill();}}
+  if(p<6.5){
+    ex.textAlign='center'; ex.fillStyle='#0b3a2c'; ex.font='700 25px system-ui,sans-serif';
+    ex.fillText('Q'+(qi+1)+'. '+QS[qi],ESW/2,510);
+    ex.fillStyle='#0f5132';
+    for(let i=0;i<19;i++){const bx=70+i*17;const hh=8+Math.abs(Math.sin(t*7+i*0.6))*34;ex.fillRect(bx,560-hh/2,7,hh);}
+    ex.fillStyle='#7d8c84'; ex.font='500 19px system-ui,sans-serif'; ex.fillText('● listening to answer…',ESW/2,624);
+  } else {
+    ex.textAlign='center'; ex.fillStyle='#0f5132'; ex.font='800 30px system-ui,sans-serif'; ex.fillText('Report sent to parent ✓',ESW/2,520);
+  }
+  ex.fillStyle='#ffffff'; ERR(20,ESH-84,ESW-40,60,30); ex.fill();
+  ex.textAlign='left'; ex.fillStyle='#5d6f66'; ex.font='600 20px system-ui,sans-serif';
+  ex.fillText(p<6.5?'AI asks · you answer aloud':'Strong: Motion, Light · Work on: Sound, Electricity',40,ESH-48);
+}
+
+const phoneE=new THREE.Group(); phoneE.position.set(-3.5,0,0); worldE.add(phoneE);
+phoneE.add(new THREE.Mesh(new THREE.BoxGeometry(3.0,6.05,0.4),new THREE.MeshStandardMaterial({color:0x10241e,roughness:.5,metalness:.3})));
+const screenE=new THREE.Mesh(new THREE.PlaneGeometry(2.62,5.35),new THREE.MeshBasicMaterial({map:escTex})); screenE.position.z=0.215; phoneE.add(screenE);
+
+function labTex(txt){const c=document.createElement('canvas');c.width=200;c.height=56;const g=c.getContext('2d');g.fillStyle='#0b3a2c';g.font='700 30px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,100,30);return new THREE.CanvasTexture(c);}
+const BX=[0.5,1.7,2.9,4.1], BASE=-2.0;
+const bars=TOPICS.map((tp,i)=>{
+  const m=new THREE.Mesh(new THREE.BoxGeometry(0.78,1,0.78),new THREE.MeshStandardMaterial({color:tp.w?0xcf472f:0x0f5132,roughness:.5,metalness:.1}));
+  m.position.set(BX[i],BASE,0); worldE.add(m);
+  const lab=new THREE.Mesh(new THREE.PlaneGeometry(1.1,0.31),new THREE.MeshBasicMaterial({map:labTex(tp.t.slice(0,9)),transparent:true}));
+  lab.position.set(BX[i],BASE-0.45,0.4); worldE.add(lab);
+  return m;
+});
+
+function plateTex(a,b){const c=document.createElement('canvas');c.width=300;c.height=120;const g=c.getContext('2d');g.fillStyle='#fff';g.strokeStyle='rgba(15,81,50,.25)';g.lineWidth=4;g.beginPath();g.roundRect(6,6,288,108,18);g.fill();g.stroke();g.fillStyle='#0b3a2c';g.font='700 28px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(a,150,46);g.fillStyle='#7d8c84';g.font='500 18px system-ui,sans-serif';g.fillText(b,150,82);return new THREE.CanvasTexture(c);}
+const parentG=new THREE.Group(); parentG.position.set(5.7,0.4,0); worldE.add(parentG);
+const pHalo=new THREE.Mesh(new THREE.PlaneGeometry(3.7,1.7),new THREE.MeshBasicMaterial({color:0x0f5132,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false})); parentG.add(pHalo);
+parentG.add(new THREE.Mesh(new THREE.PlaneGeometry(3.2,1.28),new THREE.MeshBasicMaterial({map:plateTex('Parent','gets the report'),transparent:true})));
+const packetE=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.66),new THREE.MeshBasicMaterial({color:0xffffff}));
+const pEdge=new THREE.Mesh(new THREE.PlaneGeometry(0.96,0.72),new THREE.MeshBasicMaterial({color:0x0f5132})); pEdge.position.z=-0.01; packetE.add(pEdge);
+packetE.visible=false; worldE.add(packetE);
+const P0=new THREE.Vector3(-2.1,0.3,0.3), PT=new THREE.Vector3(5.7,0.4,0.3);
+
+function frameE(){
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  rendererE.setSize(w,h,false); cameraE.aspect=w/h; cameraE.updateProjectionMatrix();
+  const vh=CAMZE*Math.tan(cameraE.fov*Math.PI/360), vw=vh*cameraE.aspect;
+  const pf=Math.min(.55,190/h);
+  const s=Math.min(2*vw*0.95/WW, 2*vh*(1-pf)*0.94/WH);
+  worldE.scale.setScalar(s); worldE.position.y=vh*pf;
+}
+new ResizeObserver(frameE).observe(wrap); frameE();
+
+let runningE=false;
+new IntersectionObserver(es=>{es.forEach(e=>{runningE=e.isIntersecting;if(runningE)loopE();});},{threshold:.05}).observe(wrap);
+
+const TE=11.0;
+const clockE=new THREE.Clock(); let te=0;
+function loopE(){
+  if(!runningE) return;
+  requestAnimationFrame(loopE);
+  te+=Math.min(clockE.getDelta(),0.05); const p=te%TE;
+
+  drawExam(p,te); escTex.needsUpdate=true;
+  phoneE.position.y=Math.sin(te*0.8)*0.05;
+
+  const sFrac=clampE((p-1)/5.5,0,1);
+  elScore.innerHTML=Math.round(sFrac*FINAL)+'<span>/100</span>';
+
+  const rf=clampE((p-6.9)/1.2,0,1);
+  TOPICS.forEach((tp,i)=>{
+    qfills[i].style.width=(tp.s*rf)+'%';
+    qvals[i].textContent= rf>0? Math.round(tp.s*rf)+'%' : '—';
+    const hh=Math.max(0.001,tp.s/100*3.4*rf);
+    bars[i].scale.y=hh; bars[i].position.y=BASE+hh/2;
+  });
+  qStatus.textContent = p<6.5?'quiz in progress…' : p<8.2?'generating report…' : 'sent to parent ✓';
+  qStatusRow.classList.toggle('filed', p>=8.2);
+
+  if(p>=6.9){
+    const prog=clampE((p-6.9)/1.4,0,1);
+    packetE.visible=prog<0.999;
+    packetE.position.lerpVectors(P0,PT,prog);
+    pHalo.material.opacity=(p>=8.2?0.5:0);
+  } else { packetE.visible=false; pHalo.material.opacity=0; }
+  pHalo.scale.setScalar(1+0.1*Math.sin(te*4)+0.0001);
+
+  const sway=Math.sin(te*0.1)*0.7;
+  cameraE.position.set(sway,0,CAMZE); cameraE.lookAt(0,0,0);
+  rendererE.render(sceneE,cameraE);
 }
 </script>
 </body>
