@@ -193,7 +193,9 @@ const PRESETS = {
       "listing two or three entries such as 'Venad Exp → Thiruvananthapuram · Plat 2 · 14:35 · On time' and " +
       "'Maveli Exp → Kollam · Plat 1 · +10 min'. " +
       "A traveler — a friendly middle-aged man with a shoulder bag — stands beside the kiosk speaking to it, looking helped and at ease. " +
-      "Background: a clean, bright Kerala railway station concourse with platforms, a train and signage, softly blurred. " +
+      "Background: a clean, bright Kerala railway station concourse with platforms and a train, softly blurred. " +
+      "Any station signage must be in ENGLISH ONLY, correctly spelled (e.g. a blue board reading 'KERALA RAILWAYS') — " +
+      "absolutely NO Malayalam or other scripts on the boards, and no misspelled words. " +
       "Modern, warm, helpful mood; crisp legible UI text; photoreal; shallow depth of field with the kiosk screen sharp. " +
       "Meaning obvious at a glance: walk up, ask aloud, get live travel information. " +
       STYLE,
