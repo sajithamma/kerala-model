@@ -137,6 +137,26 @@
   .frow.flag .fstat{color:var(--coral)}
   .frow:not(.on) .fstat{visibility:hidden}
 
+  /* StationFinder (map) variant */
+  .viz.map{background:linear-gradient(180deg,#eef2ec 0%,#e9efe9 58%,#e2eae3 100%)}
+  .sledger{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+  .srow{display:flex;align-items:center;gap:10px;font-size:12.5px;color:#0b3a2c;opacity:.4;transition:opacity .35s}
+  .srow.on{opacity:.9}
+  .srow .sdot{width:9px;height:9px;border-radius:50%;background:#9bb0a6;flex:none;transition:background .35s,box-shadow .35s}
+  .srow.near .sdot{background:var(--emerald);box-shadow:0 0 0 4px rgba(15,81,50,.16)}
+  .srow .sname{font-weight:600;min-width:120px}
+  .srow.near{opacity:1}
+  .srow.near .sname{color:var(--emerald)}
+  .srow .sno{font-family:"Space Mono",monospace;font-size:11px;color:var(--emerald);visibility:hidden}
+  .srow.near .sno{visibility:visible}
+  .srow .skm{font-family:"Space Mono",monospace;font-size:11.5px;color:#0b3a2c;opacity:.78;margin-left:auto}
+  .viz.map .panel.tall{height:172px}
+  @media(max-width:680px){
+    .srow .sno{display:none}.srow .sname{min-width:0;flex:1}
+    .viz .vlabel{font-size:9px;max-width:54%;line-height:1.35}
+    .viz .readout .big{font-size:26px}
+  }
+
   footer{position:relative;z-index:1;padding:120px 0 90px;text-align:center}
   footer .big{font-weight:600;font-size:clamp(28px,5.2vw,60px);line-height:1.12;letter-spacing:-.025em}
   footer .big b{font-weight:700;color:var(--gold-soft)}
@@ -298,6 +318,23 @@
       <div class="foot">
         <div class="row"><span class="lbl">Impact</span><span class="val">Removes confusion and delay in a crisis — anyone, anywhere, reaches the right help fast.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">Kerala Police</span><span class="chip">Home Dept</span></span></div>
+      </div>
+
+      <div class="viz map" id="stationviz">
+        <canvas id="station-canvas"></canvas>
+        <div class="vlabel"><span class="dot"></span> AI · station finder</div>
+        <div class="readout"><div class="big" id="st-km">—<span>km</span></div><div class="sub" id="st-sub">scanning stations…</div></div>
+        <div class="panel tall">
+          <div class="ptitle"><span>Police stations near you</span><span class="leg"><b>● nearest</b> &nbsp; <i>● route</i></span></div>
+          <div class="sledger" id="st-ledger">
+            <div class="srow" data-i="0"><span class="sdot"></span><span class="sname">Cantonment PS</span><span class="sno">☎ 0471-2320100</span><span class="skm">—</span></div>
+            <div class="srow" data-i="1"><span class="sdot"></span><span class="sname">Museum PS</span><span class="sno">☎ 0471-2315096</span><span class="skm">—</span></div>
+            <div class="srow" data-i="2"><span class="sdot"></span><span class="sname">Pettah PS</span><span class="sno">☎ 0471-2451100</span><span class="skm">—</span></div>
+            <div class="srow" data-i="3"><span class="sdot"></span><span class="sname">Thampanoor PS</span><span class="sno">☎ 0471-2323633</span><span class="skm">—</span></div>
+            <div class="srow" data-i="4"><span class="sdot"></span><span class="sname">Vanchiyoor PS</span><span class="sno">☎ 0471-2460100</span><span class="skm">—</span></div>
+            <div class="srow" data-i="5"><span class="sdot"></span><span class="sname">Fort PS</span><span class="sno">☎ 0471-2561300</span><span class="skm">—</span></div>
+          </div>
+        </div>
       </div>
     </article>
 
@@ -867,6 +904,177 @@ function loop(){
   const sway=Math.sin(t*0.12)*1.2;
   camera.position.set(sway,0,CAMZ);
   camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const wrap=document.getElementById('stationviz');
+const canvas=document.getElementById('station-canvas');
+const elKm=document.getElementById('st-km'), elSub=document.getElementById('st-sub');
+const rows=[...document.querySelectorAll('#st-ledger .srow')];
+const EMER=0x0f5132, GOLD=0xcf8a1a, CORAL=0xcf472f;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>1-Math.pow(1-t,3);
+const V=(x,y,z=0)=>new THREE.Vector3(x,y,z);
+
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(42,1,0.1,200);
+scene.add(new THREE.HemisphereLight(0xffffff,0xc2cfc6,1.05));
+const dl=new THREE.DirectionalLight(0xffffff,.85); dl.position.set(2,5,9); scene.add(dl);
+const CAMZ=19, WORLD_W=16, WORLD_H=12.5;
+const world=new THREE.Group(); world.rotation.x=-0.4; scene.add(world);
+
+// ---- city map texture ----
+function mapTexture(){
+  const c=document.createElement('canvas'); c.width=1024; c.height=700; const x=c.getContext('2d');
+  x.fillStyle='#e7ede7'; x.fillRect(0,0,1024,700);
+  // park
+  x.fillStyle='#d6e6cf'; x.beginPath(); x.roundRect(120,90,230,180,26); x.fill();
+  // river
+  x.strokeStyle='#bfe0d9'; x.lineWidth=46; x.lineCap='round'; x.beginPath();
+  x.moveTo(-20,520); x.bezierCurveTo(260,470,360,620,640,540); x.bezierCurveTo(840,490,920,600,1060,560); x.stroke();
+  // blocks
+  x.fillStyle='#dde5dd';
+  for(const b of [[440,120,150,110],[640,140,150,120],[760,300,170,120],[160,360,150,120],[420,330,150,110],[300,520,150,110]]){x.beginPath();x.roundRect(b[0],b[1],b[2],b[3],14);x.fill();}
+  // roads
+  x.strokeStyle='#cfd7cf'; x.lineCap='round';
+  x.lineWidth=20; const R=[[0,200,1024,200],[0,420,1024,420],[260,0,260,700],[600,0,600,700],[840,0,840,700]];
+  for(const r of R){x.beginPath();x.moveTo(r[0],r[1]);x.lineTo(r[2],r[3]);x.stroke();}
+  x.lineWidth=9; const r2=[[0,90,1024,90],[0,300,1024,300],[0,560,1024,560],[130,0,130,700],[440,0,440,700],[720,0,720,700],[940,0,940,700]];
+  for(const r of r2){x.beginPath();x.moveTo(r[0],r[1]);x.lineTo(r[2],r[3]);x.stroke();}
+  const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
+}
+const map=new THREE.Mesh(new THREE.PlaneGeometry(15,10),new THREE.MeshBasicMaterial({map:mapTexture()}));
+world.add(map);
+// map frame
+const frameLine=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(15,10)),new THREE.LineBasicMaterial({color:0x0f5132,transparent:true,opacity:.18}));
+world.add(frameLine);
+
+// ---- stations ----
+const META=[
+  {name:'Cantonment PS', p:V(-5.2,3.0)},
+  {name:'Museum PS',      p:V(1.8,1.0)},
+  {name:'Pettah PS',      p:V(5.5,-2.2)},
+  {name:'Thampanoor PS',  p:V(-2.6,-3.2)},
+  {name:'Vanchiyoor PS',  p:V(3.8,3.4)},
+  {name:'Fort PS',        p:V(-6.0,-0.8)},
+];
+const USER=V(0.4,-0.4,0);
+const dist=META.map(s=>s.p.distanceTo(USER));
+const km=dist.map(d=>+(d*1.15).toFixed(1));
+let near=0; dist.forEach((d,i)=>{if(d<dist[near])near=i;});
+
+function pin(p){
+  const g=new THREE.Group();
+  const shadow=new THREE.Mesh(new THREE.CircleGeometry(.5,24),new THREE.MeshBasicMaterial({color:0x0b3a2c,transparent:true,opacity:.12}));
+  shadow.position.z=0.02;
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.0,10),new THREE.MeshStandardMaterial({color:0x8aa097,roughness:.8}));
+  stem.rotation.x=Math.PI/2; stem.position.z=0.5;
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.46,22,22),new THREE.MeshStandardMaterial({color:EMER,emissive:EMER,emissiveIntensity:.25,roughness:.35,metalness:.2}));
+  head.position.z=1.05;
+  g.add(shadow,stem,head);
+  g.position.copy(p); world.add(g);
+  return {g,head};
+}
+const pins=META.map(m=>pin(m.p));
+
+// user marker
+const userG=new THREE.Group(); userG.position.copy(USER); world.add(userG);
+const uCore=new THREE.Mesh(new THREE.SphereGeometry(.3,18,18),new THREE.MeshStandardMaterial({color:CORAL,emissive:CORAL,emissiveIntensity:.5,roughness:.4}));
+uCore.position.z=.32; userG.add(uCore);
+const uRings=[0,1].map(()=>{const r=new THREE.Mesh(new THREE.RingGeometry(.5,.62,32),new THREE.MeshBasicMaterial({color:CORAL,transparent:true,opacity:.5,side:THREE.DoubleSide}));r.position.z=.04;userG.add(r);return r;});
+// radar
+const radar=new THREE.Mesh(new THREE.RingGeometry(.7,.8,48),new THREE.MeshBasicMaterial({color:EMER,transparent:true,opacity:.0,side:THREE.DoubleSide}));
+radar.position.copy(USER); radar.position.z=.05; world.add(radar);
+
+// scan lines (user -> each station)
+function seg(a,b,op,col){const g=new THREE.BufferGeometry().setFromPoints([a.clone().setZ(.06),b.clone().setZ(.06)]);return new THREE.Line(g,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:op}));}
+const scans=META.map(m=>{const l=seg(USER,m.p,0,EMER);world.add(l);return l;});
+
+// route (bezier user -> nearest), revealed via drawRange
+const N=48;
+const T0=pins[near].g.position;
+const mid=USER.clone().add(T0).multiplyScalar(.5);
+const dir=T0.clone().sub(USER); const perp=V(-dir.y,dir.x,0).normalize().multiplyScalar(1.3);
+const ctrl=mid.clone().add(perp);
+const rpts=[]; for(let i=0;i<N;i++){const u=i/(N-1);const a=(1-u)*(1-u),b=2*(1-u)*u,cc=u*u;rpts.push(V(a*USER.x+b*ctrl.x+cc*T0.x, a*USER.y+b*ctrl.y+cc*T0.y, .12));}
+const routeGeo=new THREE.BufferGeometry().setFromPoints(rpts);
+const route=new THREE.Line(routeGeo,new THREE.LineBasicMaterial({color:EMER,transparent:true,opacity:.95}));
+route.geometry.setDrawRange(0,0); world.add(route);
+const cursor=new THREE.Mesh(new THREE.SphereGeometry(.16,12,12),new THREE.MeshBasicMaterial({color:EMER}));
+cursor.visible=false; world.add(cursor);
+
+function frame(){
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+  const vh=CAMZ*Math.tan(camera.fov*Math.PI/360), vw=vh*camera.aspect;
+  const pf=Math.min(.55,190/h);
+  const s=Math.min(2*vw*0.95/WORLD_W, 2*vh*(1-pf)*0.94/WORLD_H);
+  world.scale.setScalar(s); world.position.y=vh*pf;
+}
+new ResizeObserver(frame).observe(wrap); frame();
+
+let running=false;
+new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
+
+const T=9.0, scanStart=1.4, step=0.32, lock=scanStart+6*step+0.3, routeS=lock+0.3, routeE=routeS+2.0;
+const clock=new THREE.Clock(); let t=0;
+function loop(){
+  if(!running) return;
+  requestAnimationFrame(loop);
+  t+=Math.min(clock.getDelta(),0.05); const p=t%T;
+
+  // user pulse
+  uRings.forEach((r,i)=>{const ph=((t*0.7+i*0.5)%1);const sc=0.6+ph*2.2;r.scale.set(sc,sc,1);r.material.opacity=0.5*(1-ph);});
+
+  // radar during scan
+  const scanning=p>=scanStart&&p<lock;
+  if(scanning){const rp=((p-scanStart)*1.1)%1;const sc=0.7+rp*9;radar.scale.set(sc,sc,1);radar.material.opacity=0.35*(1-rp);} else radar.material.opacity=0;
+
+  // scans + ledger
+  let scannedCount=0;
+  META.forEach((m,i)=>{
+    const st=scanStart+i*step;
+    const on=p>=st;
+    if(on)scannedCount++;
+    const fade = p<lock ? (on?0.45:0) : (i===near?0:lerp(scans[i].material.opacity,0,0.2));
+    scans[i].material.opacity = p<lock ? fade : lerp(scans[i].material.opacity,0,0.15);
+    rows[i].classList.toggle('on', on);
+    rows[i].querySelector('.skm').textContent = on ? km[i].toFixed(1)+' km' : '—';
+    // pin idle + highlight
+    const head=pins[i].head;
+    const isNear=i===near && p>=lock;
+    const col=new THREE.Color(isNear?GOLD:EMER);
+    head.material.color.lerp(col,0.15); head.material.emissive.lerp(col,0.15);
+    const bounce=isNear?Math.abs(Math.sin(t*3))*0.25:0;
+    head.position.z=1.05+bounce + Math.sin(t*1.5+i)*0.03;
+  });
+
+  // nearest row highlight
+  rows.forEach((r,i)=>r.classList.toggle('near', i===near && p>=lock));
+
+  // route reveal
+  if(p>=routeS){
+    const prog=clamp((p-routeS)/(routeE-routeS),0,1);
+    const k=Math.max(2,Math.floor(prog*N));
+    route.geometry.setDrawRange(0,k);
+    cursor.visible=true; cursor.position.copy(rpts[Math.min(N-1,k-1)]);
+    elKm.innerHTML=(km[near]*prog).toFixed(1)+'<span>km</span>';
+    elSub.textContent = prog>=1 ? META[near].name+' · nearest' : 'drawing route…';
+  } else {
+    route.geometry.setDrawRange(0,0); cursor.visible=false;
+    elKm.innerHTML = (p>=scanStart?'…':'—')+'<span>km</span>';
+    elSub.textContent='scanning stations…';
+  }
+
+  const sway=Math.sin(t*0.1)*1.0;
+  camera.position.set(sway,0,CAMZ); camera.lookAt(0,0,0);
   renderer.render(scene,camera);
 }
 </script>
