@@ -110,6 +110,77 @@ const PRESETS = {
       "ABSOLUTELY NO text, NO labels, NO map pins, NO markers — just the illustrated landscape map, leaving clean space along the coast. " +
       STYLE,
   },
+  civicwatch: {
+    out: "civicwatch.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory photo: a citizen reports a civic problem using a phone app. " +
+      "Scene: a man standing on a road / small bridge in Kerala, pointing his smartphone at a clearly visible CRACK and pothole " +
+      "in the road surface in front of him. " +
+      "On the phone screen, in sharp focus, an app titled 'CivicWatch AI' shows the camera view of the crack with a detection box, " +
+      "a label 'Road crack detected', a location pin line 'MG Road · geo-tagged', and a routing line 'Routed to → PWD' with a green " +
+      "'Reported #2231' tag. " +
+      "Clean white-and-green civic app UI, crisp legible text, photoreal, shallow depth of field with the phone screen sharp. " +
+      "Meaning obvious at a glance: snap a civic issue → AI logs it, locates it and routes it to the right department. " +
+      STYLE,
+  },
+  benefitfinder: {
+    out: "benefitfinder.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory photo: a citizen discovers the government schemes they are eligible for, via an app. " +
+      "Scene: an ordinary middle-aged Indian woman at a modest home, holding a smartphone, looking pleasantly surprised and hopeful. " +
+      "On the phone screen, in sharp focus, an app titled 'BenefitFinder AI' shows a 'Schemes you can claim' list with three matched " +
+      "entries, each with a green check: 'Widow Pension — eligible', 'LIFE Housing — eligible', 'Student Scholarship — eligible', " +
+      "and a small line 'Matched to your profile · tap to apply'. " +
+      "Clean white-and-green government app UI, crisp legible text, photoreal, shallow depth of field with the phone screen sharp. " +
+      "Meaning obvious at a glance: share your family details → AI finds every benefit you qualify for. " +
+      STYLE,
+  },
+  treetalk: {
+    out: "treetalk.png",
+    aspect: "16:9",
+    prompt:
+      "A charming, self-explanatory photo set in a lush botanical garden in Kerala. " +
+      "A very large old tree, but only the LOWER part is visible — a massive textured trunk and the base, rising out of frame. " +
+      "A small, cute, rounded AI device box (white-and-green, with a tiny speaker grille and a soft glowing ring) is neatly " +
+      "fitted onto the trunk at chest height, like a friendly plaque. " +
+      "A couple of garden visitors walk past; one visitor (a curious child or young adult) leans in and speaks to the little box. " +
+      "To indicate THE TREE IS SPEAKING, show a friendly speech bubble appearing to come from the tree/box reading " +
+      "'Hi! I'm a 200-year-old Banyan 🌳' (or similar short line) and gentle glowing sound-wave rings emanating from the box. " +
+      "Warm dappled sunlight, green foliage, painterly-photoreal, heart-warming and educational mood. " +
+      "Meaning obvious at a glance: a small offline AI box lets the tree tell its own story to visitors. " +
+      STYLE,
+  },
+  farmmate: {
+    out: "farmmate.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory photo communicating: a farmer points a phone at a plant leaf and an AI instantly diagnoses the disease. " +
+      "Scene: a Kerala farm/field, a farmer (in a checked shirt) holding a smartphone up close to a green plant leaf that has " +
+      "visible brown/yellow DISEASE SPOTS on it. " +
+      "On the phone screen, in sharp focus, an app titled 'FarmMate AI' shows the same leaf in the camera view with neat AR " +
+      "detection marks — small circles/bounding boxes around the diseased spots — and a result card: 'Leaf Spot (fungal) · 86%' " +
+      "with a short remedy line 'Spray neem oil · remove affected leaves'. " +
+      "Clean white-and-green app UI, crisp legible text, photoreal, shallow depth of field with the leaf and phone screen sharp. " +
+      "Meaning obvious at a glance: photograph a sick leaf → AI names the disease and the fix. " +
+      STYLE,
+  },
+  campusguard: {
+    out: "campusguard.png",
+    aspect: "16:9",
+    prompt:
+      "A wide-angle CCTV-style surveillance view of a high-school courtyard / corridor in Kerala, shot from a high corner camera " +
+      "(slight fisheye, elevated perspective). Many students walk and stand around normally in daylight. " +
+      "A subtle CCTV overlay: a small timestamp and a label 'CampusGuard AI · CAM 04' in a top corner. " +
+      "The AI has flagged 2–3 students as anomalies — each enclosed in a thin CORAL/RED bounding box with a tiny label such as " +
+      "'restricted area', 'after-hours' or 'unusual gathering' — while other students are unmarked. " +
+      "On the RIGHT side, an inset detection panel/side screen lists the alerts: a few rows like 'Anomaly · restricted zone', " +
+      "'Pattern: repeated', with small green/red status dots, in a clean UI. " +
+      "Realistic, calm, professional security-monitoring look (NOT scary, no violence); muted CCTV color grade; crisp legible labels. " +
+      "Meaning obvious at a glance: AI watches the campus feed and quietly flags unusual behaviour for staff to review. " +
+      STYLE,
+  },
   askbox: {
     out: "askbox.png",
     aspect: "16:9",
