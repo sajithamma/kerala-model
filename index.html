@@ -64,9 +64,9 @@
   .hero-img figcaption{position:absolute;left:0;right:0;bottom:0;padding:60px 32px 24px;color:#fff;font-weight:600;font-size:clamp(18px,2.6vw,28px);letter-spacing:-.01em;background:linear-gradient(to top,rgba(8,35,31,.82),transparent)}
 
   /* marquee */
-  .strip{position:relative;z-index:1;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:28px 0;overflow:hidden;background:rgba(15,81,50,.05)}
-  .marq{display:flex;gap:60px;white-space:nowrap;font-weight:500;font-size:26px;letter-spacing:-.01em;color:var(--gold-soft);animation:scroll 32s linear infinite;width:max-content}
-  .marq span::after{content:"·";margin-left:60px;color:var(--moss)}
+  .strip{position:relative;z-index:1;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0;overflow:hidden;background:rgba(15,81,50,.05)}
+  .marq{display:flex;gap:42px;white-space:nowrap;font-weight:500;font-size:14.5px;letter-spacing:.01em;color:var(--gold-soft);animation:scroll 34s linear infinite;width:max-content}
+  .marq span::after{content:"·";margin-left:42px;color:var(--moss)}
   @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
   .sec{position:relative;z-index:1;padding:104px 0 6px}
@@ -745,6 +745,8 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(42,1,0.1,200);
 scene.add(new THREE.HemisphereLight(0xffffff,0xb9c7be,1.05));
 const dl=new THREE.DirectionalLight(0xffffff,.9); dl.position.set(4,8,10); scene.add(dl);
+const CAMZ=18.6, WORLD_W=21.5, WORLD_H=7.8;
+const world=new THREE.Group(); scene.add(world);  // everything below goes in here so we can scale-to-fit
 
 // rounded-rect canvas texture helper
 function panelTex(label, drawIcon){
@@ -761,7 +763,7 @@ const ICON={
   voice:x=>{x.fillStyle=EMER;x.fillRect(-6,-22,12,30);x.beginPath();x.arc(0,8,14,0,Math.PI);x.lineWidth=4;x.strokeStyle=EMER;x.stroke();x.strokeStyle='rgba(15,81,50,.5)';for(const r of [22,30]){x.beginPath();x.arc(0,-6,r,-Math.PI*0.75,-Math.PI*0.25);x.stroke();}},
   text:x=>{x.strokeStyle=EMER;x.lineWidth=5;x.lineCap='round';for(let i=-1;i<=1;i++){x.beginPath();x.moveTo(-28,i*14);x.lineTo(i===1?8:28,i*14);x.stroke();}}
 };
-function plane(tex,w,h,pos){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true}));m.position.copy(pos);scene.add(m);return m;}
+function plane(tex,w,h,pos){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true}));m.position.copy(pos);world.add(m);return m;}
 
 // inputs (left)
 const inputY=[2.7,0,-2.7], inputs=[];
@@ -773,9 +775,9 @@ plane(panelTex('TEXT', ICON.text ),3.0,1.75,ipos[2]);
 // AI core (center)
 const core=new THREE.Mesh(new THREE.IcosahedronGeometry(1.5,1),
   new THREE.MeshStandardMaterial({color:0x16a085,emissive:0x0f5132,emissiveIntensity:.6,roughness:.3,metalness:.3,flatShading:true}));
-scene.add(core);
+world.add(core);
 const wire=new THREE.Mesh(new THREE.IcosahedronGeometry(1.75,1),
-  new THREE.MeshBasicMaterial({color:0x0f5132,wireframe:true,transparent:true,opacity:.35})); scene.add(wire);
+  new THREE.MeshBasicMaterial({color:0x0f5132,wireframe:true,transparent:true,opacity:.35})); world.add(wire);
 
 // section chips (right)
 const chipY=[3.2,1.6,0,-1.6,-3.2];
@@ -784,29 +786,42 @@ const chips=chipY.map((y,i)=>{
   const flag=i===4;
   const m=new THREE.Mesh(new THREE.BoxGeometry(3.5,1.2,0.5),
     new THREE.MeshStandardMaterial({color:0xc4cec7,emissive:0x000000,roughness:.6,metalness:.1}));
-  m.position.set(8.4,y,0); scene.add(m);
+  m.position.set(8.4,y,0); world.add(m);
   m.userData={flag, lit:0};
   const ct=document.createElement('canvas');ct.width=256;ct.height=72;const cx=ct.getContext('2d');
-  cx.fillStyle='#0b3a2c';cx.font='700 30px ui-monospace,monospace';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(codes[i],128,38);
+  cx.font='700 30px ui-monospace,monospace';cx.textAlign='center';cx.textBaseline='middle';
+  cx.lineWidth=6;cx.strokeStyle='rgba(8,35,31,.65)';cx.strokeText(codes[i],128,38);
+  cx.fillStyle='#ffffff';cx.fillText(codes[i],128,38);
   const lab=new THREE.Mesh(new THREE.PlaneGeometry(3.2,0.9),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(ct),transparent:true}));
-  lab.position.set(8.4,y,0.3);scene.add(lab);
+  lab.position.set(8.4,y,0.3);world.add(lab);
   return m;
 });
 
 // connecting lines
 function line(a,b,op){const g=new THREE.BufferGeometry().setFromPoints([a,b]);return new THREE.Line(g,new THREE.LineBasicMaterial({color:0x0f5132,transparent:true,opacity:op}));}
-ipos.forEach(p=>scene.add(line(p,V(0,0,0),.16)));
-chips.forEach(c=>scene.add(line(V(0,0,0),c.position,.1)));
+ipos.forEach(p=>world.add(line(p,V(0,0,0),.16)));
+chips.forEach(c=>world.add(line(V(0,0,0),c.position,.1)));
 
 // particle streams (inputs -> core)
 const dots=[];
-function mkDots(from,to,n,color,store){for(let i=0;i<n;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(.09,8,8),new THREE.MeshBasicMaterial({color}));d.userData={from,to,ph:i/n};scene.add(d);store.push(d);}}
+function mkDots(from,to,n,color,store){for(let i=0;i<n;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(.09,8,8),new THREE.MeshBasicMaterial({color}));d.userData={from,to,ph:i/n};world.add(d);store.push(d);}}
 ipos.forEach(p=>mkDots(p,V(0,0,0),5,0x18a085,dots));
 // core -> active chip stream
-const coreDots=[]; for(let i=0;i<6;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(.1,8,8),new THREE.MeshBasicMaterial({color:0x0f5132}));d.userData={ph:i/6};d.visible=false;scene.add(d);coreDots.push(d);}
+const coreDots=[]; for(let i=0;i<6;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(.1,8,8),new THREE.MeshBasicMaterial({color:0x0f5132}));d.userData={ph:i/6};d.visible=false;world.add(d);coreDots.push(d);}
 
-function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
-new ResizeObserver(resize).observe(wrap); resize();
+// scale-to-fit framing so the whole flow is visible on any screen (incl. mobile)
+function frame(){
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+  const vh=CAMZ*Math.tan(camera.fov*Math.PI/360);   // visible half-height at z=0
+  const vw=vh*camera.aspect;
+  const pf=Math.min(0.5,166/h);                      // fraction covered by bottom ledger panel
+  const s=Math.min(2*vw*0.94/WORLD_W, 2*vh*(1-pf)*0.92/WORLD_H);
+  world.scale.setScalar(s);
+  world.position.y=vh*pf;                            // lift content into the area above the panel
+}
+new ResizeObserver(frame).observe(wrap); frame();
 
 let running=false;
 new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
@@ -849,9 +864,9 @@ function loop(){
       d.material.color.set(chips[activeIdx].userData.flag?CORAL:EMER);}
   });
 
-  const sway=Math.sin(t*0.12)*1.4;
-  camera.position.set(sway,1.0,18.6);
-  camera.lookAt(0,-2.0,0);
+  const sway=Math.sin(t*0.12)*1.2;
+  camera.position.set(sway,0,CAMZ);
+  camera.lookAt(0,0,0);
   renderer.render(scene,camera);
 }
 </script>
