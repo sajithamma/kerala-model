@@ -66,6 +66,50 @@ const PRESETS = {
       "Composition is uncluttered and editorial, the meaning obvious at a glance. Photoreal, crisp legible text on the UI. " +
       STYLE,
   },
+  health: {
+    out: "health.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory product photo communicating: in a medical emergency, a doctor instantly sees a " +
+      "patient's key health record on a phone. " +
+      "Scene: a bright hospital / ambulance setting in Kerala, a paramedic or doctor in uniform softly blurred in the background. " +
+      "In sharp focus, a hand holds a smartphone whose screen shows a clean medical app card titled 'Quick Health Snapshot AI'. " +
+      "The card clearly lists, each on its own row with a small icon: 'Blood group: O+', 'Allergies: Penicillin', " +
+      "'Condition: Diabetic (Type 2)', 'Medication: Metformin', 'Emergency contact: Family'. " +
+      "A small line at the top reads 'Verified · updated today'. " +
+      "Clean white-and-green medical UI, crisp legible text, photoreal, shallow depth of field with the phone screen sharp. " +
+      "Meaning obvious at a glance: scan → full medical history in seconds. " +
+      STYLE,
+  },
+  sos: {
+    out: "sos.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory, dignified product photo communicating: an elderly person in distress, and an AI " +
+      "instantly calls for the right help. " +
+      "Scene: a modest, warm Kerala home; an elderly woman in a simple sari seated in a chair, looking worried but reassured, " +
+      "holding a smartphone in both hands. " +
+      "The phone screen, in sharp focus, shows a large, friendly emergency app titled 'Senior Citizen SOS AI' with a big calm " +
+      "'SOS' indicator and a voice waveform, plus a status checklist: 'Talking to you…', 'Ambulance dispatched', " +
+      "'Son notified', 'Location shared'. " +
+      "Warm soft daylight, large readable UI in green with a calm (not alarming) red SOS accent, photoreal, reassuring and respectful. " +
+      "Meaning obvious at a glance: press → the AI talks, understands the emergency, and gets help. " +
+      STYLE,
+  },
+  sentinel: {
+    out: "sentinel.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory, empowering product photo communicating an AI women-safety guardian. " +
+      "Absolutely NO violence, no threat figure, no fear — only protection and confidence. " +
+      "Scene: a confident young woman walking calmly on a quiet, well-lit Kerala street at dusk, holding her smartphone. " +
+      "The phone screen, in sharp focus, shows a safety app titled 'Sentinel AI' actively protecting, with a status panel: " +
+      "'Live location shared', 'Audio recording on', 'Trusted contacts alerted', 'Pink Police notified', a small map, " +
+      "and a discreet silent-SOS button. " +
+      "Calm, reassuring, protective mood; modern UI in white with green and a coral alert accent; photoreal; tasteful and respectful. " +
+      "Meaning obvious at a glance: the AI quietly senses danger and gets help. " +
+      STYLE,
+  },
 };
 
 async function generate(prompt, aspect) {
