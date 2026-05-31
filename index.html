@@ -831,8 +831,7 @@ let t = 0;
 const levelM = (tt)=> 37 + 6.0*Math.sin(tt*0.16) + 1.8*Math.sin(tt*0.52+1.1) + 0.7*Math.sin(tt*1.3+0.4);
 
 // ---- three.js setup ----
-const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+let renderer=null,CV=canvas;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 200);
 
@@ -900,6 +899,7 @@ const HIST=120, hist=[]; let acc=0;
 for(let i=0;i<HIST;i++) hist.push(levelM((i-HIST)*0.06));
 
 function resize(){
+  if(!renderer)return;
   const w = wrap.clientWidth, h = wrap.clientHeight;
   renderer.setSize(w,h,false);
   camera.aspect = w/h; camera.updateProjectionMatrix();
@@ -910,7 +910,7 @@ function resize(){
 new ResizeObserver(resize).observe(wrap); resize();
 
 let running=false;
-new IntersectionObserver(es=>{es.forEach(e=>{ running=e.isIntersecting; if(running) loop(); });},{threshold:.05}).observe(wrap);
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!renderer){renderer=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));resize();}running=true;loop();}else{running=false;if(renderer){renderer.forceContextLoss();renderer.dispose();renderer=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
 
 let lastM=37;
 function drawChart(){
@@ -990,8 +990,7 @@ const EMER='#0f5132', CORAL='#cf472f';
 const lerp=(a,b,t)=>a+(b-a)*t;
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 
-const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+let renderer=null,CV=canvas;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(42,1,0.1,200);
 scene.add(new THREE.HemisphereLight(0xffffff,0xb9c7be,1.05));
@@ -1062,6 +1061,7 @@ const coreDots=[]; for(let i=0;i<6;i++){const d=new THREE.Mesh(new THREE.SphereG
 
 // scale-to-fit framing so the whole flow is visible on any screen (incl. mobile)
 function frame(){
+  if(!renderer)return;
   const w=wrap.clientWidth,h=wrap.clientHeight;
   renderer.setSize(w,h,false);
   camera.aspect=w/h; camera.updateProjectionMatrix();
@@ -1075,7 +1075,7 @@ function frame(){
 new ResizeObserver(frame).observe(wrap); frame();
 
 let running=false;
-new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!renderer){renderer=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));frame();}running=true;loop();}else{running=false;if(renderer){renderer.forceContextLoss();renderer.dispose();renderer=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
 
 const T=9.0, reveal=[1.3,2.6,3.9,5.2,6.5];
 const clock=new THREE.Clock();
@@ -1135,8 +1135,7 @@ const lerp=(a,b,t)=>a+(b-a)*t;
 const ease=t=>1-Math.pow(1-t,3);
 const V=(x,y,z=0)=>new THREE.Vector3(x,y,z);
 
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+let renderer=null,CV=canvas;
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(42,1,0.1,200);
 scene.add(new THREE.HemisphereLight(0xffffff,0xc2cfc6,1.05));
@@ -1225,6 +1224,7 @@ const cursor=new THREE.Mesh(new THREE.SphereGeometry(.16,12,12),new THREE.MeshBa
 cursor.visible=false; world.add(cursor);
 
 function frame(){
+  if(!renderer)return;
   const w=wrap.clientWidth,h=wrap.clientHeight;
   renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
   const vh=CAMZ*Math.tan(camera.fov*Math.PI/360), vw=vh*camera.aspect;
@@ -1235,7 +1235,7 @@ function frame(){
 new ResizeObserver(frame).observe(wrap); frame();
 
 let running=false;
-new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!renderer){renderer=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));frame();}running=true;loop();}else{running=false;if(renderer){renderer.forceContextLoss();renderer.dispose();renderer=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
 
 const T=9.0, scanStart=1.4, step=0.32, lock=scanStart+6*step+0.3, routeS=lock+0.3, routeE=routeS+2.0;
 const clock=new THREE.Clock(); let t=0;
@@ -1309,8 +1309,7 @@ const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
 const V=(x,y,z=0)=>new THREE.Vector3(x,y,z);
 function inr(n){n=Math.round(n);let s=Math.abs(n).toString();let l3=s.slice(-3),rest=s.slice(0,-3);if(rest)l3=','+l3;rest=rest.replace(/\B(?=(\d{2})+(?!\d))/g,',');return (n<0?'-₹':'₹')+rest+l3;}
 
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+let renderer=null,CV=canvas;
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(42,1,0.1,200);
 scene.add(new THREE.HemisphereLight(0xffffff,0xc7cdc2,1.1));
@@ -1383,6 +1382,7 @@ for(let i=0;i<NDOC;i++){
 }
 
 function frame(){
+  if(!renderer)return;
   const w=wrap.clientWidth,h=wrap.clientHeight;
   renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
   const vh=CAMZ*Math.tan(camera.fov*Math.PI/360), vw=vh*camera.aspect;
@@ -1393,7 +1393,7 @@ function frame(){
 new ResizeObserver(frame).observe(wrap); frame();
 
 let running=false;
-new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!renderer){renderer=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));frame();}running=true;loop();}else{running=false;if(renderer){renderer.forceContextLoss();renderer.dispose();renderer=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
 
 const Tc=9.0;
 const clock=new THREE.Clock(); let t=0;
@@ -1448,8 +1448,7 @@ const EMER=0x0f5132;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const V=(x,y,z=0)=>new THREE.Vector3(x,y,z);
 
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+let renderer=null,CV=canvas;
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(42,1,0.1,200);
 scene.add(new THREE.HemisphereLight(0xffffff,0xc7cdc2,1.1));
@@ -1552,6 +1551,7 @@ const books=BOOKS.map(b=>{
 });
 
 function frame(){
+  if(!renderer)return;
   const w=wrap.clientWidth,h=wrap.clientHeight;
   renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
   const vh=CAMZ*Math.tan(camera.fov*Math.PI/360), vw=vh*camera.aspect;
@@ -1562,7 +1562,7 @@ function frame(){
 new ResizeObserver(frame).observe(wrap); frame();
 
 let running=false;
-new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!renderer){renderer=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));frame();}running=true;loop();}else{running=false;if(renderer){renderer.forceContextLoss();renderer.dispose();renderer=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
 
 const T=9.5;
 const clock=new THREE.Clock(); let t=0;
@@ -1606,8 +1606,7 @@ const EMER=0x0f5132, GOLD=0xcf8a1a;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const V=(x,y,z=0)=>new THREE.Vector3(x,y,z);
 
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+let renderer=null,CV=canvas;
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(42,1,0.1,200);
 scene.add(new THREE.HemisphereLight(0xffffff,0xc7cdc2,1.1));
@@ -1708,6 +1707,7 @@ const packetEdge=new THREE.Mesh(new THREE.PlaneGeometry(0.96,0.72),new THREE.Mes
 packetEdge.position.z=-0.01; packet.add(packetEdge); packet.visible=false; world.add(packet);
 
 function frame(){
+  if(!renderer)return;
   const w=wrap.clientWidth,h=wrap.clientHeight;
   renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
   const vh=CAMZ*Math.tan(camera.fov*Math.PI/360), vw=vh*camera.aspect;
@@ -1718,7 +1718,7 @@ function frame(){
 new ResizeObserver(frame).observe(wrap); frame();
 
 let running=false;
-new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!renderer){renderer=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));frame();}running=true;loop();}else{running=false;if(renderer){renderer.forceContextLoss();renderer.dispose();renderer=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
 
 const T=10.0, validate=4.6, routeS=5.3, routeE=6.9;
 const clock=new THREE.Clock(); let t=0;
@@ -1773,8 +1773,7 @@ const canvas=document.getElementById('trip-canvas');
 const elDist=document.getElementById('trip-dist'), elSub=document.getElementById('trip-sub');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+let renderer=null,CV=canvas;
 const scene=new THREE.Scene();
 let aspect=16/9;
 const camera=new THREE.OrthographicCamera(0,aspect,1,0,-100,100);
@@ -1844,6 +1843,7 @@ function layout(){
   pins.forEach(p=>{const w=P(p.d); p.grp.position.set(w.x,w.y,1);});
 }
 function frame(){
+  if(!renderer)return;
   const w=wrap.clientWidth,h=wrap.clientHeight;
   renderer.setSize(w,h,false);
   aspect=w/h; camera.left=0;camera.right=aspect;camera.top=1;camera.bottom=0;camera.updateProjectionMatrix();
@@ -1852,7 +1852,7 @@ function frame(){
 new ResizeObserver(frame).observe(wrap); frame();
 
 let running=false;
-new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!renderer){renderer=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));frame();}running=true;loop();}else{running=false;if(renderer){renderer.forceContextLoss();renderer.dispose();renderer=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
 
 const Cd=2.9;
 const clock=new THREE.Clock(); let t=0;
@@ -1905,8 +1905,7 @@ const FINAL=72;
 const QS=['SI unit of force?','Newton’s first law?','Define acceleration','Speed of light?','A good conductor?'];
 const CORR=[1,1,0,1,1];
 
-const rendererE=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-rendererE.setPixelRatio(Math.min(devicePixelRatio,2));
+let rendererE=null,CV=canvas;
 const sceneE=new THREE.Scene();
 const cameraE=new THREE.PerspectiveCamera(42,1,0.1,200);
 sceneE.add(new THREE.HemisphereLight(0xffffff,0xc7cdc2,1.1));
@@ -1983,6 +1982,7 @@ packetE.visible=false; worldE.add(packetE);
 const P0=new THREE.Vector3(-2.1,0.3,0.3), PT=new THREE.Vector3(5.7,0.4,0.3);
 
 function frameE(){
+  if(!rendererE)return;
   const w=wrap.clientWidth,h=wrap.clientHeight;
   rendererE.setSize(w,h,false); cameraE.aspect=w/h; cameraE.updateProjectionMatrix();
   const vh=CAMZE*Math.tan(cameraE.fov*Math.PI/360), vw=vh*cameraE.aspect;
@@ -1993,7 +1993,7 @@ function frameE(){
 new ResizeObserver(frameE).observe(wrap); frameE();
 
 let runningE=false;
-new IntersectionObserver(es=>{es.forEach(e=>{runningE=e.isIntersecting;if(runningE)loopE();});},{threshold:.05}).observe(wrap);
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!rendererE){rendererE=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});rendererE.setPixelRatio(Math.min(devicePixelRatio,2));frameE();}runningE=true;loopE();}else{runningE=false;if(rendererE){rendererE.forceContextLoss();rendererE.dispose();rendererE=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
 
 const TE=11.0;
 const clockE=new THREE.Clock(); let te=0;
@@ -2052,8 +2052,7 @@ const STEPS=[
 ];
 const NN=STEPS.length;
 
-const rT=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-rT.setPixelRatio(Math.min(devicePixelRatio,2));
+let rT=null,CV=canvas;
 const scT=new THREE.Scene();
 const camT=new THREE.PerspectiveCamera(42,1,0.1,200);
 scT.add(new THREE.HemisphereLight(0xffffff,0xd8cdb0,1.1));
@@ -2107,6 +2106,7 @@ const coins=[]; for(let i=0;i<5;i++){const m=new THREE.Mesh(new THREE.PlaneGeome
 function ptAt(pts,u){const f=clampT(u,0,1)*(pts.length-1);const i=Math.floor(f),frac=f-i;const a=pts[i],b=pts[Math.min(pts.length-1,i+1)];return a.clone().lerp(b,frac);}
 
 function frameT(){
+  if(!rT)return;
   const w=wrap.clientWidth,h=wrap.clientHeight;
   rT.setSize(w,h,false); camT.aspect=w/h; camT.updateProjectionMatrix();
   const vh=CAMZT*Math.tan(camT.fov*Math.PI/360), vw=vh*camT.aspect;
@@ -2117,7 +2117,7 @@ function frameT(){
 new ResizeObserver(frameT).observe(wrap); frameT();
 
 let runT=false;
-new IntersectionObserver(es=>{es.forEach(e=>{runT=e.isIntersecting;if(runT)loopT();});},{threshold:.05}).observe(wrap);
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!rT){rT=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});rT.setPixelRatio(Math.min(devicePixelRatio,2));frameT();}runT=true;loopT();}else{runT=false;if(rT){rT.forceContextLoss();rT.dispose();rT=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
 
 const Sd=1.95;
 const clockT=new THREE.Clock(); let tt=0; let lastActive=-1;
@@ -2171,8 +2171,7 @@ const clampF=(v,a,b)=>Math.max(a,Math.min(b,v));
 const EMER=0x0f5132, GOLD=0xd9a21a;
 function inr(n){n=Math.round(n);let s=Math.abs(n).toString();let l3=s.slice(-3),r=s.slice(0,-3);if(r)l3=','+l3;r=r.replace(/\B(?=(\d{2})+(?!\d))/g,',');return '₹'+r+l3;}
 
-const rF=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-rF.setPixelRatio(Math.min(devicePixelRatio,2));
+let rF=null,CV=canvas;
 const scF=new THREE.Scene();
 const camF=new THREE.PerspectiveCamera(42,1,0.1,200);
 scF.add(new THREE.HemisphereLight(0xffffff,0xc7cdd6,1.1));
@@ -2211,6 +2210,7 @@ const payCoin=new THREE.Mesh(new THREE.PlaneGeometry(0.7,0.7),new THREE.MeshBasi
 const CC=new THREE.Vector3(0,0.5,0.3);
 
 function frameF(){
+  if(!rF)return;
   const w=wrap.clientWidth,h=wrap.clientHeight;
   rF.setSize(w,h,false); camF.aspect=w/h; camF.updateProjectionMatrix();
   const vh=CAMZF*Math.tan(camF.fov*Math.PI/360), vw=vh*camF.aspect;
@@ -2221,7 +2221,7 @@ function frameF(){
 new ResizeObserver(frameF).observe(wrap); frameF();
 
 let runF=false;
-new IntersectionObserver(es=>{es.forEach(e=>{runF=e.isIntersecting;if(runF)loopF();});},{threshold:.05}).observe(wrap);
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!rF){rF=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});rF.setPixelRatio(Math.min(devicePixelRatio,2));frameF();}runF=true;loopF();}else{runF=false;if(rF){rF.forceContextLoss();rF.dispose();rF=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
 
 const TF=10.5, buyEnd=4.6, drawS=4.6, drawE=5.6, payS=5.8, payE=7.4;
 const TICKETS=12480, POOL=480000;
