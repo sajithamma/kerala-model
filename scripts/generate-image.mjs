@@ -61,7 +61,7 @@ const PRESETS = {
       "pointing to specific parts of the house, each with a small crisp label: " +
       "a green checkmark label reading 'WATER OK', a green checkmark label 'ROOF OK', a green checkmark 'TOILET OK', " +
       "and one red warning label with an exclamation mark reading 'PLASTERING INCOMPLETE'. " +
-      "A clean status bar at the top of the phone screen reads 'BuildProof AI' on the left and 'House #47 — 92% verified' on the right, " +
+      "A clean status bar at the top of the phone screen reads 'Housing Inspection AI' on the left and 'House #47 — 92% verified' on the right, " +
       "with a thin green progress bar. " +
       "Composition is uncluttered and editorial, the meaning obvious at a glance. Photoreal, crisp legible text on the UI. " +
       STYLE,

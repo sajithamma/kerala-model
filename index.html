@@ -175,6 +175,12 @@
   .trow.status .tval{color:#9bb0a6}
   .trow.status.filed .tval{color:var(--emerald)}
 
+  /* LawLine (chat) variant */
+  .viz.chat{background:linear-gradient(180deg,#eef3ef 0%,#e9efe9 60%,#e3ebe4 100%)}
+  .lawsrc{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .lawsrc .chip{transition:background .35s,color .35s,border-color .35s}
+  .lawsrc .chip.lit{background:var(--emerald);color:#fff;border-color:var(--emerald);box-shadow:0 0 0 4px rgba(15,81,50,.14)}
+
   footer{position:relative;z-index:1;padding:120px 0 90px;text-align:center}
   footer .big{font-weight:600;font-size:clamp(28px,5.2vw,60px);line-height:1.12;letter-spacing:-.025em}
   footer .big b{font-weight:700;color:var(--gold-soft)}
@@ -301,6 +307,22 @@
         <div class="row"><span class="lbl">Impact</span><span class="val">Legal literacy for millions who can't afford a lawyer for a simple question — reduces exploitation and fear of the system.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">Law Dept</span><span class="chip">KELSA (Legal Services Authority)</span></span></div>
       </div>
+
+      <div class="viz chat" id="lawviz">
+        <canvas id="law-canvas"></canvas>
+        <div class="vlabel"><span class="dot"></span> AI · legal help line</div>
+        <div class="readout"><div class="big" id="law-247">24×7</div><div class="sub">WhatsApp · Call · Web</div></div>
+        <div class="panel">
+          <div class="ptitle"><span>Knows Indian + Kerala law, in plain words</span><span class="leg"><b>● cited source</b></span></div>
+          <div class="lawsrc">
+            <span class="chip">BNS 2023</span>
+            <span class="chip" id="law-cited">Kerala Rent Control Act</span>
+            <span class="chip">Consumer Protection</span>
+            <span class="chip">Motor Vehicles</span>
+            <span class="chip">RTI</span>
+          </div>
+        </div>
+      </div>
     </article>
 
     <article class="card" data-n="04">
@@ -334,8 +356,8 @@
 
     <article class="card" data-n="05">
       <span class="domain">Enterprise · Telephony</span>
-      <div class="name">VoiceLine <span class="ai">AI</span></div>
-      <div class="role">— AI phone agent for businesses</div>
+      <div class="name">SME Telephony <span class="ai">AI</span></div>
+      <div class="role">— AI phone agent that answers business calls, 24×7</div>
       <div class="oneline">A phone number that answers for your business, all day, in your voice.</div>
       <p class="desc">An SME or startup signs up with an Indian operator (Jio / Vi / BSNL), gets a number, and mounts an AI agent on it that explains the business and engages customers on call. Built on an India-compatible SIP/voice stack — no Twilio dependency — so even the smallest shop gets an always-available, professional voice.</p>
       <div class="foot">
@@ -346,8 +368,8 @@
 
     <article class="card" data-n="06">
       <span class="domain">Safety · Maps</span>
-      <div class="name">StationFinder <span class="ai">AI</span></div>
-      <div class="role">— Police-station map + AI guide</div>
+      <div class="name">Nearest Police Station <span class="ai">AI</span></div>
+      <div class="role">— Find &amp; reach the right station, fast</div>
       <div class="oneline">Find the right police station — and reach it — in seconds.</div>
       <p class="desc">Every police station in Kerala on one map, with an AI guide that helps a citizen navigate to the nearest or jurisdictionally-correct station, pull instant contact numbers and officer info, and check services, jurisdiction and timings on demand.</p>
       <div class="foot">
@@ -375,8 +397,8 @@
 
     <article class="card" data-n="07">
       <span class="domain">Welfare · Infrastructure</span>
-      <div class="name">BuildProof <span class="ai">AI</span></div>
-      <div class="role">— AI housing-scheme inspection</div>
+      <div class="name">Housing Inspection <span class="ai">AI</span></div>
+      <div class="role">— Photo-verify government housing quality</div>
       <div class="oneline">Turning housing budgets into real, livable homes — checked.</div>
       <p class="desc">When the government builds homes by the hundred, AI scores photo and video evidence against a quality checklist — water supply, sanitation, garbage management, structural progress — tracking each house, flagging discrepancies, and keeping an auditable site-level trail that stops funds from leaking between sanction and shelter.</p>
       <div class="foot">
@@ -385,8 +407,8 @@
       </div>
 
       <figure class="card-img">
-        <img src="assets/buildproof.png" alt="A field inspector photographs a newly built house; the BuildProof AI app overlays the live camera view with validation labels — Water OK, Roof OK, Toilet OK, and a red Plastering Incomplete flag — with a 'House #47 — 92% verified' status bar." loading="lazy" />
-        <figcaption>Point the phone at the house — BuildProof AI checks every item against the standard and flags what's incomplete.</figcaption>
+        <img src="assets/buildproof.png" alt="A field inspector photographs a newly built house; the Housing Inspection AI app overlays the live camera view with validation labels — Water OK, Roof OK, Toilet OK, and a red Plastering Incomplete flag — with a 'House #47 — 92% verified' status bar." loading="lazy" />
+        <figcaption>Point the phone at the house — Housing Inspection AI checks every item against the standard and flags what's incomplete.</figcaption>
       </figure>
     </article>
 
@@ -404,10 +426,10 @@
 
     <article class="card" data-n="09">
       <span class="domain">Safety · Police</span>
-      <div class="name">SafeReport <span class="ai">AI</span></div>
-      <div class="role">— AI citizen crime reporting</div>
+      <div class="name">Citizen Crime Reporting <span class="ai">AI</span></div>
+      <div class="role">— Guided reporting, routed to the right desk</div>
       <div class="oneline">Reporting a crime, as easy as telling someone.</div>
-      <p class="desc">A guided AI intake assistant that validates the incident, asks the right follow-up questions, requests the proof that matters — photos, location, witnesses — and auto-routes the complete report to the correct station or authority. It pairs naturally with PreFIR AI and StationFinder for a full citizen-safety loop.</p>
+      <p class="desc">A guided AI intake assistant that validates the incident, asks the right follow-up questions, requests the proof that matters — photos, location, witnesses — and auto-routes the complete report to the correct station or authority. It pairs naturally with PreFIR AI and Nearest Police Station AI for a full citizen-safety loop.</p>
       <div class="foot">
         <div class="row"><span class="lbl">Impact</span><span class="val">More crimes actually reported, complete from the start, reaching the right desk without the citizen knowing the system.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">Kerala Police</span><span class="chip">Home Dept</span></span></div>
@@ -416,8 +438,8 @@
 
     <article class="card" data-n="10">
       <span class="domain">Health · Records</span>
-      <div class="name">HealthVault <span class="ai">AI</span></div>
-      <div class="role">— AI-managed citizen health records</div>
+      <div class="name">Quick Health Snapshot <span class="ai">AI</span></div>
+      <div class="role">— Instant citizen health record for emergencies</div>
       <div class="oneline">Your whole medical story, ready the moment it's needed.</div>
       <p class="desc">A cloud health profile for every citizen, managed by AI. Records are added simply — upload a blood report, photograph a prescription, or auto-gather data from hospitals — and AI structures and maintains them over time, so an emergency app can instantly retrieve a person's latest medical condition.</p>
       <div class="foot">
@@ -428,10 +450,10 @@
 
     <article class="card" data-n="11">
       <span class="domain">Health · Elderly</span>
-      <div class="name">ElderAid <span class="ai">AI</span></div>
-      <div class="role">— AI SOS app for senior citizens</div>
+      <div class="name">Senior Citizen SOS <span class="ai">AI</span></div>
+      <div class="role">— Voice SOS that gets elders the right help</div>
       <div class="oneline">An SOS that listens, understands, and gets help — for those living alone.</div>
-      <p class="desc">A phone app built for elderly citizens. On trigger, AI talks with the person in natural voice to assess the situation, understands the emergency need — medical, fall, safety — and connects them to the right responder. Paired with HealthVault, the responder arrives already knowing the patient's history.</p>
+      <p class="desc">A phone app built for elderly citizens. On trigger, AI talks with the person in natural voice to assess the situation, understands the emergency need — medical, fall, safety — and connects them to the right responder. Paired with Quick Health Snapshot AI, the responder arrives already knowing the patient's history.</p>
       <div class="foot">
         <div class="row"><span class="lbl">Impact</span><span class="val">Dignity and safety for Kerala's large elderly and "left-behind" population whose children live far away.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">Social Justice Dept</span><span class="chip">Health Dept</span><span class="chip">NORKA</span></span></div>
@@ -443,7 +465,7 @@
       <div class="name">Sentinel <span class="ai">AI</span></div>
       <div class="role">— AI women-safety detection</div>
       <div class="oneline">An app that senses danger before you can even ask for help.</div>
-      <p class="desc">AI auto-detects a threat from the phone's camera and audio cues, assesses severity in real time, and pushes context — live location, audio/video evidence, a situation summary — to the nearest helping point. With silent triggers, auto-escalation if no one responds, and trusted-contact alerts. It joins StationFinder, SafeReport and ElderAid into one safety net.</p>
+      <p class="desc">AI auto-detects a threat from the phone's camera and audio cues, assesses severity in real time, and pushes context — live location, audio/video evidence, a situation summary — to the nearest helping point. With silent triggers, auto-escalation if no one responds, and trusted-contact alerts. It joins Nearest Police Station AI, Citizen Crime Reporting AI and Senior Citizen SOS AI into one safety net.</p>
       <div class="foot">
         <div class="row"><span class="lbl">Impact</span><span class="val">Faster intervention in the critical seconds of an assault — a force-multiplier for the Pink Police network.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">Women &amp; Child Dev Dept</span><span class="chip">Kerala Police (Pink Police)</span></span></div>
@@ -455,7 +477,7 @@
       <div class="name">Bloom <span class="ai">AI</span></div>
       <div class="role">— Private AI women's-health companion</div>
       <div class="oneline">A private, judgment-free companion for women's health.</div>
-      <p class="desc">A fully confidential AI companion app for women — helping with menstrual health, menopause and related wellness, answering questions, tracking cycles, explaining symptoms and offering guidance. Privacy-first by design, so the most personal data stays protected. It complements HealthVault without ever exposing it.</p>
+      <p class="desc">A fully confidential AI companion app for women — helping with menstrual health, menopause and related wellness, answering questions, tracking cycles, explaining symptoms and offering guidance. Privacy-first by design, so the most personal data stays protected. It complements Quick Health Snapshot AI without ever exposing it.</p>
       <div class="foot">
         <div class="row"><span class="lbl">Impact</span><span class="val">Breaks the silence and stigma around women's health, especially for young and rural women.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">Women &amp; Child Dev Dept</span><span class="chip">Health Dept</span></span></div>
@@ -599,7 +621,7 @@
       <div class="name">SecondLook <span class="ai">AI</span></div>
       <div class="role">— AI medical second opinion</div>
       <div class="oneline">A trustworthy second opinion, before you commit to treatment.</div>
-      <p class="desc">A health AI that lets citizens get a second opinion on a diagnosis and treatment plan. Upload reports, diagnosis and prescriptions; the AI reviews and explains them, flags concerns, and suggests the questions to ask the doctor. A clarity and safety layer — never a replacement for a physician — that pairs with HealthVault and CarePoint.</p>
+      <p class="desc">A health AI that lets citizens get a second opinion on a diagnosis and treatment plan. Upload reports, diagnosis and prescriptions; the AI reviews and explains them, flags concerns, and suggests the questions to ask the doctor. A clarity and safety layer — never a replacement for a physician — that pairs with Quick Health Snapshot AI and CarePoint.</p>
       <div class="foot">
         <div class="row"><span class="lbl">Impact</span><span class="val">Empowers patients to make informed choices and avoid unnecessary or wrong treatment.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">Health Dept</span><span class="chip">Medical Education Dept</span></span></div>
@@ -1259,6 +1281,162 @@ function loop(){
   statusRow.classList.toggle('filed',done);
 
   const sway=Math.sin(t*0.1)*0.9;
+  camera.position.set(sway,0,CAMZ); camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const wrap=document.getElementById('lawviz');
+const canvas=document.getElementById('law-canvas');
+const citedChip=document.getElementById('law-cited');
+const EMER=0x0f5132;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const V=(x,y,z=0)=>new THREE.Vector3(x,y,z);
+
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(42,1,0.1,200);
+scene.add(new THREE.HemisphereLight(0xffffff,0xc7cdc2,1.1));
+const dl=new THREE.DirectionalLight(0xffffff,.7); dl.position.set(2,4,9); scene.add(dl);
+const CAMZ=13, WORLD_W=14, WORLD_H=8.6;
+const world=new THREE.Group(); scene.add(world);
+
+// ---------- phone screen (live chat) ----------
+const SW=480, SH=960;
+const sc=document.createElement('canvas'); sc.width=SW; sc.height=SH; const g2=sc.getContext('2d');
+const screenTex=new THREE.CanvasTexture(sc); screenTex.anisotropy=4;
+function rr(x,y,w,h,r){g2.beginPath();g2.roundRect(x,y,w,h,r);}
+function wrapText(text,maxW,font){g2.font=font;const words=text.split(' ');const lines=[];let cur='';for(const w of words){const test=cur?cur+' '+w:w;if(g2.measureText(test).width>maxW&&cur){lines.push(cur);cur=w;}else cur=test;}if(cur)lines.push(cur);return lines;}
+const Q='Landlord won’t return my ₹50,000 advance. What can I do?';
+const A='Send a written demand notice first. If ignored, file for recovery under the Kerala Rent Control Act. Keep rent receipts & bank proof.';
+const BODY='500 27px system-ui,sans-serif';
+const qLines=wrapText(Q,310,BODY), aLines=wrapText(A,320,BODY);
+
+function bubble(side,lines,topY,alpha,bg){
+  const pad=22,lh=36,maxW=330; g2.font=BODY;
+  let tw=0; lines.forEach(l=>tw=Math.max(tw,g2.measureText(l).width));
+  const bw=Math.min(maxW+pad*2,tw+pad*2), bh=lines.length*lh+pad*1.3;
+  const x=side==='right'?(SW-26-bw):26, oy=(1-alpha)*22;
+  g2.globalAlpha=alpha;
+  g2.fillStyle=bg; rr(x,topY+oy,bw,bh,24); g2.fill();
+  g2.fillStyle='#0b3a2c'; g2.textAlign='left'; g2.textBaseline='alphabetic';
+  lines.forEach((l,i)=>g2.fillText(l,x+pad,topY+oy+pad+lh*(i+0.7)));
+  g2.globalAlpha=1;
+  return topY+oy+bh+16;
+}
+function chip(y,alpha,text){
+  g2.globalAlpha=alpha; g2.font='700 23px ui-monospace,monospace';
+  const bw=g2.measureText(text).width+36;
+  g2.fillStyle='#0f5132'; rr(26,y,bw,46,23); g2.fill();
+  g2.fillStyle='#fff'; g2.fillText(text,26+18,y+31); g2.globalAlpha=1;
+}
+function typing(y,t){
+  g2.fillStyle='#fff'; rr(26,y,96,50,24); g2.fill();
+  for(let i=0;i<3;i++){g2.globalAlpha=0.35+0.55*(0.5+0.5*Math.sin(t*7-i*0.7));g2.fillStyle='#8ba294';g2.beginPath();g2.arc(52+i*22,y+25,6,0,7);g2.fill();}
+  g2.globalAlpha=1;
+}
+function drawScreen(p,t){
+  g2.fillStyle='#e9e4db'; g2.fillRect(0,0,SW,SH);
+  // header
+  g2.fillStyle='#0f5132'; g2.fillRect(0,0,SW,120);
+  g2.fillStyle='#cfe9d6'; g2.beginPath(); g2.arc(58,62,30,0,7); g2.fill();
+  g2.fillStyle='#0f5132'; g2.font='800 24px ui-monospace,monospace'; g2.textAlign='center'; g2.textBaseline='middle'; g2.fillText('LL',58,63);
+  g2.textAlign='left'; g2.textBaseline='alphabetic';
+  g2.fillStyle='#fff'; g2.font='700 31px system-ui,sans-serif'; g2.fillText('LawLine AI',106,54);
+  const isTyping=p>1.7&&p<3.3;
+  g2.fillStyle='#bfe6cf'; g2.font='500 21px system-ui,sans-serif'; g2.fillText(isTyping?'typing…':'online',106,86);
+  // input bar
+  g2.fillStyle='#ffffff'; rr(20,SH-74,SW-40,52,26); g2.fill();
+  g2.fillStyle='#a9b8af'; g2.font='500 22px system-ui,sans-serif'; g2.fillText('Ask a legal question…',40,SH-42);
+  // conversation
+  let y=160;
+  const qIn=clamp((p-0.7)/0.5,0,1);
+  if(qIn>0) y=bubble('right',qLines,y,qIn,'#d7f0c2'); else return;
+  if(isTyping) typing(y+16,t);
+  const aIn=clamp((p-3.3)/0.6,0,1);
+  if(aIn>0){
+    const ay=bubble('left',aLines,y+16,aIn,'#ffffff');
+    const cIn=clamp((p-3.95)/0.4,0,1);
+    if(cIn>0) chip(ay,cIn,'§ Kerala Rent Control Act');
+  }
+}
+
+// phone body
+const phone=new THREE.Group(); world.add(phone);
+const body=new THREE.Mesh(new THREE.BoxGeometry(3.25,6.45,0.42),new THREE.MeshStandardMaterial({color:0x10241e,roughness:.5,metalness:.3}));
+phone.add(body);
+const screen=new THREE.Mesh(new THREE.PlaneGeometry(2.85,5.7),new THREE.MeshBasicMaterial({map:screenTex}));
+screen.position.z=0.225; phone.add(screen);
+
+// law books behind
+function bookTex(title){
+  const c=document.createElement('canvas');c.width=200;c.height=270;const x=c.getContext('2d');
+  x.fillStyle='#0f5132';x.beginPath();x.roundRect(6,6,188,258,12);x.fill();
+  x.strokeStyle='rgba(255,255,255,.25)';x.lineWidth=3;x.beginPath();x.roundRect(16,16,168,238,8);x.stroke();
+  x.fillStyle='#e8b04b';x.fillRect(28,150,144,4);
+  x.fillStyle='#fff';x.font='700 22px system-ui,sans-serif';x.textAlign='left';x.textBaseline='top';
+  const words=title.split(' ');let line='',ly=44;for(const w of words){const tst=line?line+' '+w:w;if(x.measureText(tst).width>150&&line){x.fillText(line,28,ly);ly+=28;line=w;}else line=tst;}x.fillText(line,28,ly);
+  x.fillStyle='rgba(255,255,255,.6)';x.font='600 15px ui-monospace,monospace';x.fillText('STATUTE',28,232);
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;
+}
+const BOOKS=[
+  {title:'Bharatiya Nyaya Sanhita 2023', pos:V(-3.9,1.7,-1.4), rot:0.16, cited:false},
+  {title:'Kerala Rent Control Act',      pos:V(3.8,0.8,-1.6),  rot:-0.13, cited:true},
+  {title:'Consumer Protection Act',      pos:V(-3.3,-1.9,-1.3), rot:0.1, cited:false},
+];
+const books=BOOKS.map(b=>{
+  const grp=new THREE.Group(); grp.position.copy(b.pos); grp.rotation.z=b.rot; world.add(grp);
+  const halo=new THREE.Mesh(new THREE.PlaneGeometry(2.5,3.3),new THREE.MeshBasicMaterial({color:EMER,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));
+  halo.position.z=-0.05; grp.add(halo);
+  const cover=new THREE.Mesh(new THREE.PlaneGeometry(1.75,2.36),new THREE.MeshBasicMaterial({map:bookTex(b.title),transparent:true}));
+  grp.add(cover);
+  const beam=new THREE.Line(new THREE.BufferGeometry().setFromPoints([b.pos.clone(),V(0,0,0.2)]),new THREE.LineBasicMaterial({color:EMER,transparent:true,opacity:0}));
+  world.add(beam);
+  return {grp,halo,beam,cited:b.cited};
+});
+
+function frame(){
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+  const vh=CAMZ*Math.tan(camera.fov*Math.PI/360), vw=vh*camera.aspect;
+  const pf=Math.min(.5,124/h);
+  const s=Math.min(2*vw*0.95/WORLD_W, 2*vh*(1-pf)*0.94/WORLD_H);
+  world.scale.setScalar(s); world.position.y=vh*pf;
+}
+new ResizeObserver(frame).observe(wrap); frame();
+
+let running=false;
+new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
+
+const T=9.5;
+const clock=new THREE.Clock(); let t=0;
+function loop(){
+  if(!running) return;
+  requestAnimationFrame(loop);
+  t+=Math.min(clock.getDelta(),0.05); const p=t%T;
+
+  drawScreen(p,t); screenTex.needsUpdate=true;
+
+  phone.position.y=Math.sin(t*0.8)*0.07;
+  phone.rotation.y=Math.sin(t*0.3)*0.05;
+
+  // consult intensity (typing + answer window)
+  let cI=clamp((p-1.7)/0.5,0,1)*clamp((7.2-p)/0.6,0,1);
+  const answered=p>3.6&&p<8.2;
+  books.forEach(b=>{
+    const g=cI*(b.cited?(answered?1:0.55):0.5);
+    b.halo.material.opacity=0.45*g;
+    b.halo.scale.setScalar(1+0.12*Math.sin(t*4)*g+0.0001);
+    b.beam.material.opacity=0.4*g;
+    b.grp.position.z=BOOKS[books.indexOf(b)].pos.z + 0.12*g;
+  });
+  citedChip.classList.toggle('lit', answered);
+
+  const sway=Math.sin(t*0.1)*0.7;
   camera.position.set(sway,0,CAMZ); camera.lookAt(0,0,0);
   renderer.render(scene,camera);
 }
