@@ -45,6 +45,27 @@ const PRESETS = {
       "soft mist. Peaceful, inspirational, cinematic. " +
       STYLE,
   },
+  buildproof: {
+    out: "buildproof.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory product photo that instantly communicates: take a photo of a house, " +
+      "and an AI app validates the construction quality. " +
+      "Scene: a newly built single-storey government welfare house in rural Kerala — plain concrete walls, " +
+      "sloped tiled roof, a few coconut palms, bright clean daylight. " +
+      "In the foreground, slightly to one side, a young field inspector in a light blue shirt holds up a " +
+      "smartphone in both hands, photographing the house. The phone is angled so the viewer clearly sees its screen, " +
+      "which is in sharp focus while the background has a soft shallow depth of field. " +
+      "On the phone screen is a modern, flat augmented-reality inspection app (clean white UI with green accents). " +
+      "The live camera view on the screen shows the SAME house with neat rounded bounding-box markers and thin leader lines " +
+      "pointing to specific parts of the house, each with a small crisp label: " +
+      "a green checkmark label reading 'WATER OK', a green checkmark label 'ROOF OK', a green checkmark 'TOILET OK', " +
+      "and one red warning label with an exclamation mark reading 'PLASTERING INCOMPLETE'. " +
+      "A clean status bar at the top of the phone screen reads 'BuildProof AI' on the left and 'House #47 — 92% verified' on the right, " +
+      "with a thin green progress bar. " +
+      "Composition is uncluttered and editorial, the meaning obvious at a glance. Photoreal, crisp legible text on the UI. " +
+      STYLE,
+  },
 };
 
 async function generate(prompt, aspect) {
