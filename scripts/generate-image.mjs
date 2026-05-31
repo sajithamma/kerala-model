@@ -131,16 +131,16 @@ const PRESETS = {
     out: "sme.png",
     aspect: "16:9",
     prompt:
-      "A clear, self-explanatory product photo communicating: a small business's phone line is answered automatically " +
-      "by a friendly AI voice agent, 24×7, so the owner never misses a customer. " +
-      "Scene: a small warm Kerala business — a cosy café/shop — with a young entrepreneur in the softly-blurred background " +
-      "calmly working and serving a customer, relaxed because the calls are handled for them. " +
-      "In sharp focus in the foreground, a hand holds a smartphone showing an 'SME Telephony AI' call screen: at the top the " +
-      "business name 'Spice Garden Café' with a label 'AI Assistant · Live · 24×7'; a glowing voice waveform in the middle; " +
-      "and a short call transcript of two chat bubbles — a caller bubble reading 'Are you open now?' and an AI reply bubble " +
-      "reading 'Yes! Open till 11 PM, and we deliver.' — plus a small green tag 'Answered by AI'. " +
-      "Clean modern white-and-green call UI, crisp legible text, photoreal, shallow depth of field with the phone screen sharp. " +
-      "Meaning obvious at a glance: customers call, and the AI answers and helps on behalf of the business. " +
+      "A clear, self-explanatory photo communicating: a customer simply CALLS a small business's phone NUMBER, and an AI voice " +
+      "agent answers the call. This is an ORDINARY PHONE CALL — NOT an app, NOT a chat, NO message bubbles. " +
+      "Foreground in sharp focus: a hand holds a smartphone showing a NATIVE PHONE-CALL screen of an ongoing voice call — " +
+      "at the top a large contact name 'Spice Garden Café' with the dialled phone number '+91 98470 12345' below it, " +
+      "a running call timer '00:42', and a clear sub-label 'Answered by AI voice assistant'. " +
+      "In the middle a gentle animated voice waveform. At the bottom, the standard round CALL-CONTROL buttons in a grid — " +
+      "mute, keypad, speaker, add-call, and a red END-CALL button — exactly like a normal smartphone call screen. " +
+      "The caller is standing on a street / at home, softly blurred warm background. " +
+      "Photoreal, clean native call UI, crisp legible text, shallow depth of field with the phone screen sharp. " +
+      "Meaning obvious at a glance: dial the business number, and an AI answers and helps like a real receptionist. " +
       STYLE,
   },
   bloom: {
