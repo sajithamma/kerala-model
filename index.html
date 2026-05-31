@@ -157,6 +157,8 @@
   .srow .skm{font-family:"Space Mono",monospace;font-size:11.5px;color:#0b3a2c;opacity:.78;margin-left:auto}
   .viz.map .panel.tall,.viz.ledger .panel.tall,.viz.report .panel.tall,.viz.quiz .panel.tall,.viz.tuck .panel.tall,.viz.chain .panel.tall{height:172px}
   .viz.chain{background:linear-gradient(180deg,#eef1f6 0%,#e9eef0 60%,#e2e8ee 100%)}
+  .viz.opinion .panel.tall{height:172px}
+  .viz.opinion{background:linear-gradient(180deg,#eff3f3 0%,#e9efee 60%,#e3eae8 100%)}
   /* Tuck Coin (economy) variant */
   .viz.tuck{background:linear-gradient(180deg,#fbf4e4 0%,#f1f3ea 58%,#e8eee7 100%)}
   .tkline{display:flex;gap:8px;align-items:baseline;margin:3px 0 7px;font-size:13.5px;color:#0b3a2c}
@@ -205,6 +207,9 @@
   footer .big{font-weight:600;font-size:clamp(28px,5.2vw,60px);line-height:1.12;letter-spacing:-.025em}
   footer .big b{font-weight:700;color:var(--gold-soft)}
   footer .sign{margin-top:46px;font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--mist)}
+  footer .credit{margin-top:30px;text-align:right;font-size:11px;letter-spacing:.02em;color:rgba(27,39,35,.4)}
+  footer .credit a{color:rgba(27,39,35,.55);text-decoration:none;border-bottom:1px solid rgba(27,39,35,.2)}
+  footer .credit a:hover{color:var(--emerald)}
 
   @media(max-width:680px){
     .card{padding:36px 26px 32px}
@@ -447,6 +452,11 @@
         <div class="row"><span class="lbl">Impact</span><span class="val">Faster infrastructure approvals, less corruption-prone discretion, and projects that actually start on time.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">KSEB</span><span class="chip">Kerala Water Authority</span><span class="chip">LSGD</span></span></div>
       </div>
+
+      <figure class="card-img">
+        <img src="assets/permitpilot.png" alt="An engineer holds a tablet showing PermitPilot AI assembling a KSEB Plan Sanction with a document checklist (site plan, load details, NOC missing) and a 'Ready to submit' button." loading="lazy" />
+        <figcaption>AI drafts the approval paperwork — checks every document against the norms and flags what's missing before you submit.</figcaption>
+      </figure>
     </article>
 
     <article class="card" data-n="09">
@@ -648,6 +658,11 @@
         <div class="row"><span class="lbl">Impact</span><span class="val">Connects qualified youth to government opportunity they'd otherwise never hear about — a state of job-seekers.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">Kerala PSC</span><span class="chip">Employment Dept</span><span class="chip">NORKA</span></span></div>
       </div>
+
+      <figure class="card-img">
+        <img src="assets/jobfit.png" alt="A young graduate holds a phone showing JobFit AI listing government jobs that fit them — Village Extension Officer and LD Clerk eligible, Sub Inspector height-short — matched from their marklist and certificates." loading="lazy" />
+        <figcaption>Upload your marklist and certificates — JobFit AI lists the government jobs you're actually eligible for.</figcaption>
+      </figure>
     </article>
 
     <article class="card" data-n="19">
@@ -773,6 +788,22 @@
         <div class="row"><span class="lbl">Impact</span><span class="val">Empowers patients to make informed choices and avoid unnecessary or wrong treatment.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">Health Dept</span><span class="chip">Medical Education Dept</span></span></div>
       </div>
+
+      <div class="viz opinion" id="slviz">
+        <canvas id="sl-canvas"></canvas>
+        <div class="vlabel"><span class="dot"></span> AI · medical second opinion</div>
+        <div class="readout"><div class="big" id="sl-pct">0<span>%</span></div><div class="sub" id="sl-sub">reviewing report…</div></div>
+        <div class="panel tall">
+          <div class="ptitle"><span>Second opinion on your diagnosis</span><span class="leg"><b>● consistent</b> &nbsp; <i>● check</i></span></div>
+          <div class="tledger">
+            <div class="trow"><span class="tlbl">Diagnosis (Type 2 Diabetes)</span><span class="tval" id="sl-0">—</span></div>
+            <div class="trow"><span class="tlbl">Metformin 1000mg dose</span><span class="tval" id="sl-1">—</span></div>
+            <div class="trow"><span class="tlbl">Missing test</span><span class="tval" id="sl-2">—</span></div>
+            <div class="trow" id="sl-qrow"><span class="tlbl">Questions for your doctor</span><span class="tval" id="sl-3">—</span></div>
+            <div class="trow status" id="sl-statusrow"><span class="tlbl">Note</span><span class="tval" id="sl-status">a clarity layer · not a diagnosis</span></div>
+          </div>
+        </div>
+      </div>
     </article>
 
     <article class="card" data-n="26">
@@ -799,6 +830,7 @@
   <div class="wrap">
     <p class="big">A state is judged by the smallest interaction<br>between a citizen and its government.<br><b>Let's make every one of them count.</b></p>
     <p class="sign">The Kerala Model · 26 ideas · Built in Kerala, for Kerala</p>
+    <p class="credit">Prepared by <a href="https://www.sajithamma.com" target="_blank" rel="noopener">Sajith Amma</a></p>
   </div>
 </footer>
 
@@ -2266,6 +2298,112 @@ function loopF(){
   const sway=Math.sin(tf*0.1)*0.6;
   camF.position.set(sway,0,CAMZF); camF.lookAt(0,0,0);
   rF.render(scF,camF);
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const wrap=document.getElementById('slviz');
+const canvas=document.getElementById('sl-canvas');
+const elPct=document.getElementById('sl-pct'), elSub=document.getElementById('sl-sub');
+const v0=document.getElementById('sl-0'),v1=document.getElementById('sl-1'),v2=document.getElementById('sl-2'),v3=document.getElementById('sl-3');
+const qRow=document.getElementById('sl-qrow'), elStatus=document.getElementById('sl-status'), statusRow=document.getElementById('sl-statusrow');
+const clampS=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+let rS=null,CV=canvas;
+const scS=new THREE.Scene();
+const camS=new THREE.PerspectiveCamera(42,1,0.1,200);
+scS.add(new THREE.HemisphereLight(0xffffff,0xc7cdc6,1.1));
+const dlS=new THREE.DirectionalLight(0xffffff,.7); dlS.position.set(3,4,9); scS.add(dlS);
+const CAMZS=12, WWS=12, WHS=6.6;
+const worldS=new THREE.Group(); scS.add(worldS);
+
+// medical report document (canvas)
+const DW=520,DH=700;
+const dc=document.createElement('canvas'); dc.width=DW; dc.height=DH; const d2=dc.getContext('2d');
+const docTex=new THREE.CanvasTexture(dc); docTex.anisotropy=4;
+function dRR(a,b,w,h,r){d2.beginPath();d2.roundRect(a,b,w,h,r);}
+const TH=[0.30,0.56,0.78];   // scan-progress thresholds for the 3 findings
+function badge(x,y,txt,kind){ // kind: ok/warn/add
+  d2.font='700 22px system-ui,sans-serif';const tw=d2.measureText(txt).width;
+  const col=kind==='warn'?'#cf472f':'#0f5132';
+  d2.fillStyle=col;dRR(x,y,tw+58,40,20);d2.fill();
+  d2.fillStyle='#fff';d2.beginPath();d2.arc(x+24,y+20,13,0,7);d2.fill();
+  d2.fillStyle=col;d2.font='800 18px system-ui,sans-serif';d2.textAlign='center';d2.textBaseline='middle';
+  d2.fillText(kind==='ok'?'✓':kind==='warn'?'!':'+',x+24,y+20);
+  d2.fillStyle='#fff';d2.textAlign='left';d2.font='700 21px system-ui,sans-serif';d2.fillText(txt,x+44,y+21);
+}
+function drawDoc(sp){
+  d2.fillStyle='#ffffff'; d2.fillRect(0,0,DW,DH);
+  d2.strokeStyle='rgba(15,81,50,.15)';d2.lineWidth=4;dRR(8,8,DW-16,DH-16,18);d2.stroke();
+  d2.fillStyle='#0f5132';d2.fillRect(8,8,DW-16,70);
+  d2.fillStyle='#fff';d2.font='700 28px system-ui,sans-serif';d2.textAlign='left';d2.textBaseline='middle';d2.fillText('Medical Report',32,44);
+  const rows=[['Diagnosis','Type 2 Diabetes Mellitus',180],['Prescription','Metformin 1000 mg · twice daily',320],['Tests done','Fasting glucose: 142 mg/dL',460]];
+  d2.textBaseline='alphabetic';
+  for(const [k,val,y] of rows){d2.fillStyle='#7d8c84';d2.font='600 19px system-ui,sans-serif';d2.fillText(k,32,y);d2.fillStyle='#0b3a2c';d2.font='700 25px system-ui,sans-serif';d2.fillText(val,32,y+34);}
+  // findings (revealed as scan passes)
+  if(sp>=TH[0]) badge(300,158,'consistent','ok');
+  if(sp>=TH[1]) badge(300,298,'confirm dose','warn');
+  if(sp>=TH[2]) badge(300,438,'add HbA1c test','add');
+  // scan band
+  if(sp>0&&sp<1){const y=70+sp*(DH-90);d2.fillStyle='rgba(15,81,50,.16)';d2.fillRect(8,y-14,DW-16,28);d2.fillStyle='#0f5132';d2.fillRect(8,y,DW-16,3);}
+  docTex.needsUpdate=true;
+}
+const doc=new THREE.Mesh(new THREE.PlaneGeometry(3.3,4.44),new THREE.MeshBasicMaterial({map:docTex}));
+doc.position.set(-1.1,0,0); worldS.add(doc);
+
+// AI orb + label
+const orb=new THREE.Mesh(new THREE.IcosahedronGeometry(0.72,1),new THREE.MeshStandardMaterial({color:0x16a085,emissive:0x0f5132,emissiveIntensity:.6,roughness:.3,metalness:.3,flatShading:true}));
+orb.position.set(3.0,1.0,0); worldS.add(orb);
+const orbWire=new THREE.Mesh(new THREE.IcosahedronGeometry(0.86,1),new THREE.MeshBasicMaterial({color:0x0f5132,wireframe:true,transparent:true,opacity:.3}));orbWire.position.copy(orb.position);worldS.add(orbWire);
+function olab(){const c=document.createElement('canvas');c.width=300;c.height=64;const g=c.getContext('2d');g.fillStyle='rgba(255,255,255,.92)';g.strokeStyle='#0f5132';g.lineWidth=3;g.beginPath();g.roundRect(4,4,292,56,16);g.fill();g.stroke();g.fillStyle='#0f5132';g.font='700 24px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('AI second opinion',150,33);return new THREE.CanvasTexture(c);}
+const oLab=new THREE.Mesh(new THREE.PlaneGeometry(2.2,0.47),new THREE.MeshBasicMaterial({map:olab(),transparent:true}));oLab.position.set(3.0,-0.1,0);worldS.add(oLab);
+// link orb -> doc
+const link=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(2.3,0.9,0),new THREE.Vector3(0.6,0.6,0)]),new THREE.LineBasicMaterial({color:0x0f5132,transparent:true,opacity:.25}));worldS.add(link);
+
+function frameS(){
+  if(!rS)return;
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  rS.setSize(w,h,false); camS.aspect=w/h; camS.updateProjectionMatrix();
+  const vh=CAMZS*Math.tan(camS.fov*Math.PI/360), vw=vh*camS.aspect;
+  const pf=Math.min(.55,190/h);
+  const s=Math.min(2*vw*0.95/WWS, 2*vh*(1-pf)*0.94/WHS);
+  worldS.scale.setScalar(s); worldS.position.y=vh*pf;
+}
+new ResizeObserver(frameS).observe(wrap);
+
+let runS=false;
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(!rS){rS=new THREE.WebGLRenderer({canvas:CV,antialias:true,alpha:true});rS.setPixelRatio(Math.min(devicePixelRatio,2));frameS();}runS=true;loopS();}else{runS=false;if(rS){rS.forceContextLoss();rS.dispose();rS=null;const f=CV.cloneNode(false);CV.replaceWith(f);CV=f;}}});},{threshold:.05}).observe(wrap);
+
+const TS=9.0, scanS=0.8, scanE=5.0;
+const clockS=new THREE.Clock(); let ts=0;
+function loopS(){
+  if(!runS) return;
+  requestAnimationFrame(loopS);
+  ts+=Math.min(clockS.getDelta(),0.05); const p=ts%TS;
+
+  orb.rotation.y+=0.012; orbWire.rotation.y-=0.009;
+  const pl=1+0.06*Math.sin(ts*4); orb.scale.setScalar(pl); orbWire.scale.setScalar(pl);
+  doc.position.y=Math.sin(ts*0.7)*0.04;
+
+  const sp=clampS((p-scanS)/(scanE-scanS),0,1);
+  drawDoc(sp);
+
+  const done=p>=scanE;
+  v0.textContent = sp>=TH[0]?'consistent ✓':'—';
+  v1.textContent = sp>=TH[1]?'confirm — high':'—';
+  v2.textContent = sp>=TH[2]?'HbA1c +':'—';
+  v3.textContent = done?'3 ready':'—';
+  qRow.classList.toggle('net',done);
+  elPct.innerHTML=Math.round(sp*92)+'<span>%</span>';
+  elSub.textContent = done?'consistent with your diagnosis':'reviewing report…';
+  elStatus.textContent = done?'second opinion ready ✓':'a clarity layer · not a diagnosis';
+  statusRow.classList.toggle('filed',done);
+
+  const sway=Math.sin(ts*0.1)*0.5;
+  camS.position.set(sway,0,CAMZS); camS.lookAt(0,0,0);
+  rS.render(scS,camS);
 }
 </script>
 </body>

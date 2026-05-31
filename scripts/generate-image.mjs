@@ -110,6 +110,32 @@ const PRESETS = {
       "ABSOLUTELY NO text, NO labels, NO map pins, NO markers — just the illustrated landscape map, leaving clean space along the coast. " +
       STYLE,
   },
+  permitpilot: {
+    out: "permitpilot.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory product photo communicating: an AI drafts and checks a government permit application. " +
+      "Scene: a young engineer / contractor in a hard hat at a building site or office desk in Kerala, holding a tablet/phone. " +
+      "On the screen, in sharp focus, an app titled 'PermitPilot AI' shows a permit being assembled: a heading 'KSEB Plan Sanction', " +
+      "a checklist of required documents each with a status icon — 'Site plan ✓', 'Load details ✓', 'Owner NOC ⚠ missing' — " +
+      "a green line 'Checked against current norms', and a button 'Ready to submit'. " +
+      "Clean white-and-green official app UI, crisp legible text, photoreal, shallow depth of field with the screen sharp. " +
+      "Meaning obvious at a glance: the AI drafts the approval paperwork and flags what's missing before submission. " +
+      STYLE,
+  },
+  jobfit: {
+    out: "jobfit.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory product photo communicating: upload your certificates and AI finds the government jobs you're eligible for. " +
+      "Scene: a hopeful young Indian graduate at home/desk holding a smartphone, looking optimistic. " +
+      "On the screen, in sharp focus, an app titled 'JobFit AI' shows a 'Government jobs that fit you' list with matched roles, each with a " +
+      "status: 'Village Extension Officer — eligible ✓', 'LD Clerk — eligible ✓', 'Sub Inspector — height short ⚠', and a small line " +
+      "'Matched from your marklist & certificates'. " +
+      "Clean white-and-green app UI, crisp legible text, photoreal, shallow depth of field with the phone screen sharp. " +
+      "Meaning obvious at a glance: upload your CV/marklist → AI lists the right-fit government jobs and your eligibility. " +
+      STYLE,
+  },
   civicwatch: {
     out: "civicwatch.png",
     aspect: "16:9",
