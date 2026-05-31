@@ -155,7 +155,8 @@
   .srow .sno{font-family:"Space Mono",monospace;font-size:11px;color:var(--emerald);visibility:hidden}
   .srow.near .sno{visibility:visible}
   .srow .skm{font-family:"Space Mono",monospace;font-size:11.5px;color:#0b3a2c;opacity:.78;margin-left:auto}
-  .viz.map .panel.tall,.viz.ledger .panel.tall,.viz.report .panel.tall,.viz.quiz .panel.tall,.viz.tuck .panel.tall{height:172px}
+  .viz.map .panel.tall,.viz.ledger .panel.tall,.viz.report .panel.tall,.viz.quiz .panel.tall,.viz.tuck .panel.tall,.viz.chain .panel.tall{height:172px}
+  .viz.chain{background:linear-gradient(180deg,#eef1f6 0%,#e9eef0 60%,#e2e8ee 100%)}
   /* Tuck Coin (economy) variant */
   .viz.tuck{background:linear-gradient(180deg,#fbf4e4 0%,#f1f3ea 58%,#e8eee7 100%)}
   .tkline{display:flex;gap:8px;align-items:baseline;margin:3px 0 7px;font-size:13.5px;color:#0b3a2c}
@@ -658,6 +659,22 @@
       <div class="foot">
         <div class="row"><span class="lbl">Impact</span><span class="val">Grows a flagship state revenue source globally while making it the world's most transparent public lottery.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">State Lotteries Dept</span><span class="chip">Taxes Dept</span><span class="chip">Finance Dept</span></span></div>
+      </div>
+
+      <div class="viz chain" id="fdviz">
+        <canvas id="fd-canvas"></canvas>
+        <div class="vlabel"><span class="dot"></span> AI · on-chain lottery</div>
+        <div class="readout"><div class="big" id="fd-rd">₹0</div><div class="sub" id="fd-sub">prize pool · on-chain</div></div>
+        <div class="panel tall">
+          <div class="ptitle"><span>Provably-fair draw → auto-payout</span><span class="leg"><b>● winner</b></span></div>
+          <div class="tledger">
+            <div class="trow"><span class="tlbl">Tickets sold</span><span class="tval" id="fd-tickets">0</span></div>
+            <div class="trow"><span class="tlbl">Prize pool (escrow)</span><span class="tval" id="fd-pool">₹0</span></div>
+            <div class="trow"><span class="tlbl">Draw block</span><span class="tval" id="fd-block">—</span></div>
+            <div class="trow" id="fd-winrow"><span class="tlbl">Winner</span><span class="tval" id="fd-winner">…</span></div>
+            <div class="trow status" id="fd-statusrow"><span class="tlbl">Settlement</span><span class="tval" id="fd-status">selling tickets…</span></div>
+          </div>
+        </div>
       </div>
     </article>
 
@@ -2138,6 +2155,117 @@ function loopT(){
   const sway=Math.sin(tt*0.1)*0.6;
   camT.position.set(sway,0,CAMZT); camT.lookAt(0,0,0);
   rT.render(scT,camT);
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const wrap=document.getElementById('fdviz');
+const canvas=document.getElementById('fd-canvas');
+const elRd=document.getElementById('fd-rd'), elSub=document.getElementById('fd-sub');
+const elTk=document.getElementById('fd-tickets'), elPool=document.getElementById('fd-pool'), elBlock=document.getElementById('fd-block');
+const elWin=document.getElementById('fd-winner'), winRow=document.getElementById('fd-winrow');
+const elStat=document.getElementById('fd-status'), statRow=document.getElementById('fd-statusrow');
+const clampF=(v,a,b)=>Math.max(a,Math.min(b,v));
+const EMER=0x0f5132, GOLD=0xd9a21a;
+function inr(n){n=Math.round(n);let s=Math.abs(n).toString();let l3=s.slice(-3),r=s.slice(0,-3);if(r)l3=','+l3;r=r.replace(/\B(?=(\d{2})+(?!\d))/g,',');return '₹'+r+l3;}
+
+const rF=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+rF.setPixelRatio(Math.min(devicePixelRatio,2));
+const scF=new THREE.Scene();
+const camF=new THREE.PerspectiveCamera(42,1,0.1,200);
+scF.add(new THREE.HemisphereLight(0xffffff,0xc7cdd6,1.1));
+const dlF=new THREE.DirectionalLight(0xffffff,.8); dlF.position.set(2,4,9); scF.add(dlF);
+const CAMZF=15, WWF=15, WHF=8.6;
+const worldF=new THREE.Group(); scF.add(worldF);
+
+// central smart-contract cube + chain
+const contract=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,1.5),new THREE.MeshStandardMaterial({color:0x16a085,emissive:0x0f5132,emissiveIntensity:.55,roughness:.3,metalness:.35}));
+contract.position.set(0,0.5,0); worldF.add(contract);
+const cWire=new THREE.Mesh(new THREE.BoxGeometry(1.7,1.7,1.7),new THREE.MeshBasicMaterial({color:0x0f5132,wireframe:true,transparent:true,opacity:.3}));cWire.position.copy(contract.position);worldF.add(cWire);
+function lab(txt,w,col){const c=document.createElement('canvas');c.width=300;c.height=64;const g=c.getContext('2d');g.fillStyle='rgba(255,255,255,.9)';g.strokeStyle=col||'#0f5132';g.lineWidth=3;g.beginPath();g.roundRect(4,4,292,56,16);g.fill();g.stroke();g.fillStyle=col||'#0f5132';g.font='700 26px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,150,33);const t=new THREE.CanvasTexture(c);t.anisotropy=4;const m=new THREE.Mesh(new THREE.PlaneGeometry(w,w*64/300),new THREE.MeshBasicMaterial({map:t,transparent:true}));return m;}
+const cLab=lab('Smart contract',1.9); cLab.position.set(0,-0.7,0.8); worldF.add(cLab);
+
+// blockchain blocks (bottom)
+const BLN=5, blocks=[];
+for(let i=0;i<BLN;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7),new THREE.MeshStandardMaterial({color:0xbfd0c8,emissive:0x000000,roughness:.6}));m.position.set(-2.2+i*1.1,-2.4,0);worldF.add(m);blocks.push(m);
+  if(i>0){const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-2.2+(i-1)*1.1+0.35,-2.4,0),new THREE.Vector3(-2.2+i*1.1-0.35,-2.4,0)]);worldF.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:EMER,transparent:true,opacity:.3})));}}
+
+// buyer crowd ring
+const BN=8, Rx=4.6, Ry=2.0, WINNER=5;
+const ang=i=>Math.PI/2 - i*(Math.PI*2/BN);
+const BP=i=>new THREE.Vector3(Rx*Math.cos(ang(i)), 0.5+Ry*Math.sin(ang(i)), 0);
+const buyers=[];
+for(let i=0;i<BN;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(0.34,18,18),new THREE.MeshStandardMaterial({color:EMER,emissive:EMER,emissiveIntensity:.2,roughness:.4}));m.position.copy(BP(i));worldF.add(m);buyers.push(m);}
+// winner star
+const star=lab('★ WINNER',1.7,'#d9a21a'); star.position.copy(BP(WINNER)); star.position.y+=0.7; star.visible=false; worldF.add(star);
+
+// ticket tokens (buyers -> contract)
+const tickets=[]; for(let i=0;i<BN;i++){for(let k=0;k<2;k++){const m=new THREE.Mesh(new THREE.PlaneGeometry(0.26,0.18),new THREE.MeshBasicMaterial({color:0xd9a21a,transparent:true}));m.userData={from:BP(i),ph:(i+k*0.5)/BN};worldF.add(m);tickets.push(m);}}
+// draw sweep ring
+const sweep=new THREE.Mesh(new THREE.RingGeometry(0.7,0.82,48),new THREE.MeshBasicMaterial({color:GOLD,transparent:true,opacity:0,side:THREE.DoubleSide}));sweep.position.copy(contract.position);worldF.add(sweep);
+// payout coin
+function coinTex(){const c=document.createElement('canvas');c.width=80;c.height=80;const g=c.getContext('2d');g.translate(40,40);g.fillStyle='#d9a21a';g.beginPath();g.arc(0,0,36,0,7);g.fill();g.strokeStyle='#fff7e0';g.lineWidth=4;g.stroke();g.fillStyle='#fff';g.font='800 40px system-ui';g.textAlign='center';g.textBaseline='middle';g.fillText('₹',0,2);return new THREE.CanvasTexture(c);}
+const payCoin=new THREE.Mesh(new THREE.PlaneGeometry(0.7,0.7),new THREE.MeshBasicMaterial({map:coinTex(),transparent:true}));payCoin.visible=false;worldF.add(payCoin);
+const CC=new THREE.Vector3(0,0.5,0.3);
+
+function frameF(){
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  rF.setSize(w,h,false); camF.aspect=w/h; camF.updateProjectionMatrix();
+  const vh=CAMZF*Math.tan(camF.fov*Math.PI/360), vw=vh*camF.aspect;
+  const pf=Math.min(.55,190/h);
+  const s=Math.min(2*vw*0.95/WWF, 2*vh*(1-pf)*0.94/WHF);
+  worldF.scale.setScalar(s); worldF.position.y=vh*pf;
+}
+new ResizeObserver(frameF).observe(wrap); frameF();
+
+let runF=false;
+new IntersectionObserver(es=>{es.forEach(e=>{runF=e.isIntersecting;if(runF)loopF();});},{threshold:.05}).observe(wrap);
+
+const TF=10.5, buyEnd=4.6, drawS=4.6, drawE=5.6, payS=5.8, payE=7.4;
+const TICKETS=12480, POOL=480000;
+const clockF=new THREE.Clock(); let tf=0;
+function loopF(){
+  if(!runF) return;
+  requestAnimationFrame(loopF);
+  tf+=Math.min(clockF.getDelta(),0.05); const p=tf%TF;
+
+  contract.rotation.y+=0.01; contract.rotation.x+=0.004; cWire.rotation.y+=0.01; cWire.rotation.x+=0.004;
+  const pulse=1+0.05*Math.sin(tf*4); contract.scale.setScalar(pulse); cWire.scale.setScalar(pulse);
+
+  const buyFrac=clampF(p/buyEnd,0,1);
+  // blocks appear
+  blocks.forEach((b,i)=>{const on=buyFrac>i/BLN; b.scale.setScalar(on?1:0.0001); b.material.emissive.setHex(on&&buyFrac<((i+1)/BLN)?0x0f5132:0x000000);});
+  // tickets fly in during buy
+  tickets.forEach(tk=>{tk.visible=p<buyEnd; if(p<buyEnd){const u=((tf*0.5+tk.userData.ph)%1);tk.position.lerpVectors(tk.userData.from,CC,u);const s=Math.sin(u*Math.PI);tk.scale.setScalar(0.6+s*0.6);tk.material.opacity=0.2+s*0.8;tk.rotation.z=tf*2;}});
+
+  // draw sweep
+  if(p>=drawS&&p<payS){const dp=((p-drawS)*1.4)%1;sweep.scale.setScalar(0.7+dp*7);sweep.material.opacity=0.5*(1-dp);} else sweep.material.opacity=0;
+
+  // winner highlight after draw
+  const drawn=p>=drawE;
+  buyers.forEach((b,i)=>{const win=drawn&&i===WINNER;b.material.color.setHex(win?GOLD:EMER);b.material.emissive.setHex(win?GOLD:EMER);b.material.emissiveIntensity=win?0.6:0.2;b.scale.setScalar(win?1.4+0.1*Math.sin(tf*6):1);});
+  star.visible=drawn;
+
+  // payout coin contract -> winner
+  if(p>=drawE&&p<=payE){payCoin.visible=true;const prog=clampF((p-drawE)/(payE-drawE),0,1);payCoin.position.lerpVectors(CC,BP(WINNER),prog);payCoin.scale.setScalar(1+0.3*Math.sin(prog*Math.PI));} else payCoin.visible=false;
+
+  // overlays
+  const tkN=Math.round(buyFrac*TICKETS), poolN=buyFrac*POOL;
+  elTk.textContent=tkN.toLocaleString('en-IN');
+  elPool.textContent=inr(poolN);
+  elBlock.textContent = p>=drawS ? '#1,842,531' : '—';
+  elWin.textContent = drawn ? '0x9f…7a2' : '…'; winRow.classList.toggle('net',drawn);
+  const settled=p>=payE;
+  elStat.textContent = p<drawS?'selling tickets…' : p<payE?'drawing & paying out…' : 'settled on-chain ✓';
+  statRow.classList.toggle('filed',settled);
+  elRd.textContent = p<drawS?inr(poolN) : p<payE?'DRAWING…' : 'PAID ✓';
+  elSub.textContent = p<payE?'prize pool · on-chain' : 'auto-paid to the winner';
+
+  const sway=Math.sin(tf*0.1)*0.6;
+  camF.position.set(sway,0,CAMZF); camF.lookAt(0,0,0);
+  rF.render(scF,camF);
 }
 </script>
 </body>
