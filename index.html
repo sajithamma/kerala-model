@@ -157,6 +157,10 @@
   .srow .skm{font-family:"Space Mono",monospace;font-size:11.5px;color:#0b3a2c;opacity:.78;margin-left:auto}
   .viz.map .panel.tall,.viz.ledger .panel.tall,.viz.report .panel.tall{height:172px}
   .viz.report{background:linear-gradient(180deg,#eef2f5 0%,#e9efee 60%,#e3eae7 100%)}
+  /* TripMate: generated map background + three.js overlay */
+  .viz.trip{height:auto;aspect-ratio:16/9;background:#bcdfe8}
+  .viz.trip .trip-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .viz.trip canvas{position:absolute;inset:0}
   @media(max-width:680px){
     .srow .sno{display:none}.srow .sname{min-width:0;flex:1}
     .viz .vlabel{font-size:9px;max-width:54%;line-height:1.35}
@@ -525,6 +529,13 @@
       <div class="foot">
         <div class="row"><span class="lbl">Impact</span><span class="val">Richer, safer tourism experiences that grow Kerala's flagship tourism economy and its global brand.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">Kerala Tourism Dept</span><span class="chip">KTDC</span></span></div>
+      </div>
+
+      <div class="viz trip" id="tripviz">
+        <img class="trip-bg" src="assets/trip-map.png" alt="Illustrated travel map of the Varkala coast, Kerala — sea, cliffs, beaches and backwaters." />
+        <canvas id="trip-canvas"></canvas>
+        <div class="vlabel"><span class="dot"></span> AI · Kerala travel companion</div>
+        <div class="readout"><div class="big" id="trip-dist">—</div><div class="sub" id="trip-sub">tap a place near Varkala</div></div>
       </div>
     </article>
 
@@ -1643,6 +1654,130 @@ function loop(){
   renderer.render(scene,camera);
 }
 function lerp3(a,b,t){return a+(b-a)*t;}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const wrap=document.getElementById('tripviz');
+const canvas=document.getElementById('trip-canvas');
+const elDist=document.getElementById('trip-dist'), elSub=document.getElementById('trip-sub');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+let aspect=16/9;
+const camera=new THREE.OrthographicCamera(0,aspect,1,0,-100,100);
+camera.position.z=10;
+
+// --- textures ---
+function pinTex(hex){
+  const c=document.createElement('canvas');c.width=90;c.height=120;const x=c.getContext('2d');
+  x.translate(45,42);
+  x.shadowColor='rgba(0,0,0,.4)';x.shadowBlur=8;x.shadowOffsetY=4;
+  x.fillStyle=hex;x.strokeStyle='#ffffff';x.lineWidth=5;
+  x.beginPath();x.arc(0,0,30,Math.PI*0.18,Math.PI*0.82,true);x.lineTo(0,74);x.closePath();x.fill();x.stroke();
+  x.shadowColor='transparent';
+  x.fillStyle='#ffffff';x.beginPath();x.arc(0,-2,12,0,7);x.fill();
+  return new THREE.CanvasTexture(c);
+}
+function labelTex(text,strong){
+  const c=document.createElement('canvas');const g=c.getContext('2d');
+  const font='700 30px system-ui,sans-serif'; g.font=font;
+  const tw=g.measureText(text).width; c.width=tw+44; c.height=56;
+  const x=c.getContext('2d'); x.font=font;
+  x.fillStyle='rgba(255,255,255,.95)';x.strokeStyle=strong?'#cf472f':'rgba(15,81,50,.35)';x.lineWidth=4;
+  x.beginPath();x.roundRect(4,4,c.width-8,c.height-8,18);x.fill();x.stroke();
+  x.fillStyle=strong?'#cf472f':'#0b3a2c';x.textAlign='center';x.textBaseline='middle';x.fillText(text,c.width/2,c.height/2+1);
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return {t,ratio:c.width/c.height};
+}
+
+const VARK={name:'★ Varkala', nx:0.40, ny:0.36, main:true};
+const DEST=[
+  {name:'Kappil Beach',     km:6,  nx:0.47, ny:0.12},
+  {name:'Anchuthengu Fort', km:12, nx:0.34, ny:0.58},
+  {name:'Kollam',           km:25, nx:0.72, ny:0.18},
+  {name:'Trivandrum',       km:42, nx:0.62, ny:0.80},
+  {name:'Kovalam',          km:55, nx:0.33, ny:0.86},
+];
+const ALL=[VARK,...DEST];
+
+const PIN_H=0.10, LABEL_H=0.046;
+function buildPin(d){
+  const grp=new THREE.Group(); scene.add(grp);
+  const main=!!d.main;
+  const ph=main?PIN_H*1.32:PIN_H;
+  const pin=new THREE.Mesh(new THREE.PlaneGeometry(ph*90/120,ph),new THREE.MeshBasicMaterial({map:pinTex(main?'#cf472f':'#0f5132'),transparent:true}));
+  pin.position.y=ph/2; grp.add(pin);
+  const L=labelTex(main?d.name:d.name,main);
+  const lab=new THREE.Mesh(new THREE.PlaneGeometry(LABEL_H*L.ratio,LABEL_H),new THREE.MeshBasicMaterial({map:L.t,transparent:true}));
+  lab.position.y=ph+LABEL_H/2+0.012; grp.add(lab);
+  let ring=null;
+  if(main){
+    ring=new THREE.Mesh(new THREE.RingGeometry(0.03,0.04,40),new THREE.MeshBasicMaterial({color:0xcf472f,transparent:true,opacity:.5,side:THREE.DoubleSide}));
+    grp.add(ring);
+  }
+  return {grp,pin,lab,ring,ph,d};
+}
+const pins=ALL.map(buildPin);
+const vark=pins[0];
+
+// route + moving dot + km pill
+const route=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xcf472f,transparent:true,opacity:.92}));
+scene.add(route);
+const dot=new THREE.Mesh(new THREE.CircleGeometry(0.012,16),new THREE.MeshBasicMaterial({color:0xcf472f}));
+scene.add(dot);
+const kmPills=DEST.map(d=>{const L=labelTex(d.km+' km',true);const m=new THREE.Mesh(new THREE.PlaneGeometry(LABEL_H*L.ratio,LABEL_H),new THREE.MeshBasicMaterial({map:L.t,transparent:true}));m.visible=false;scene.add(m);return m;});
+
+function P(d){return new THREE.Vector3(d.nx*aspect, 1-d.ny, 0);}
+function layout(){
+  pins.forEach(p=>{const w=P(p.d); p.grp.position.set(w.x,w.y,1);});
+}
+function frame(){
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  renderer.setSize(w,h,false);
+  aspect=w/h; camera.left=0;camera.right=aspect;camera.top=1;camera.bottom=0;camera.updateProjectionMatrix();
+  layout();
+}
+new ResizeObserver(frame).observe(wrap); frame();
+
+let running=false;
+new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
+
+const Cd=2.9;
+const clock=new THREE.Clock(); let t=0;
+function loop(){
+  if(!running) return;
+  requestAnimationFrame(loop);
+  t+=Math.min(clock.getDelta(),0.05);
+
+  // main ring pulse + gentle pin bob
+  if(vark.ring){const rp=(t*0.7)%1;vark.ring.scale.setScalar(1+rp*2.4);vark.ring.material.opacity=0.5*(1-rp);}
+  pins.forEach((p,i)=>{p.pin.position.y=p.ph/2+Math.sin(t*1.4+i)*0.006;});
+
+  const active=Math.floor(t/Cd)%DEST.length;
+  const cp=(t%Cd)/Cd;
+  const rp=clamp(cp/0.55,0,1);
+
+  const A=vark.grp.position.clone(), B=pins[active+1].grp.position.clone();
+  // slight arc
+  const mid=A.clone().add(B).multiplyScalar(.5); const dir=B.clone().sub(A); mid.x+=-dir.y*0.12; mid.y+=dir.x*0.12;
+  const NP=30, pts=[];
+  for(let i=0;i<NP;i++){const u=(i/(NP-1))*rp;const a=(1-u)*(1-u),b=2*(1-u)*u,cc=u*u;pts.push(new THREE.Vector3(a*A.x+b*mid.x+cc*B.x,a*A.y+b*mid.y+cc*B.y,0.3));}
+  route.geometry.setFromPoints(pts);
+  dot.position.copy(pts[pts.length-1]); dot.visible=rp>0.02&&rp<0.999;
+
+  // active pin emphasis + km pill at midpoint
+  pins.forEach((p,i)=>{const act=i===active+1;p.grp.scale.setScalar(act?1.18:1.0);});
+  kmPills.forEach((m,i)=>{m.visible=(i===active)&&rp>0.5;});
+  if(rp>0.5){const u=0.5,a=(1-u)*(1-u),b=2*(1-u)*u,cc=u*u;kmPills[active].position.set(a*A.x+b*mid.x+cc*B.x,a*A.y+b*mid.y+cc*B.y+0.03,2);}
+
+  elDist.textContent=DEST[active].km+' km';
+  elSub.textContent='Varkala → '+DEST[active].name;
+
+  renderer.render(scene,camera);
+}
 </script>
 </body>
 </html>

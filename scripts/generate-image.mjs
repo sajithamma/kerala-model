@@ -96,6 +96,20 @@ const PRESETS = {
       "Meaning obvious at a glance: press → the AI talks, understands the emergency, and gets help. " +
       STYLE,
   },
+  trip: {
+    out: "trip-map.png",
+    aspect: "16:9",
+    prompt:
+      "A beautiful, richly illustrated travel map of the South Kerala coastline around Varkala, India — " +
+      "a top-down / gentle bird's-eye map view, premium travel-poster aesthetic. " +
+      "The Arabian Sea fills the LEFT third of the map in a gradient of turquoise to deep blue with soft waves and a few tiny boats. " +
+      "The LAND fills the centre and right in lush tropical greens — coconut palm groves, tiny red-roofed villages, winding " +
+      "backwater canals and rice paddies. A sandy coastline with red laterite cliffs and beaches runs vertically (north–south) " +
+      "down the middle of the map, separating sea from land. Include a small lighthouse near the coast and a couple of houseboats in a backwater. " +
+      "Painterly, warm golden-hour light, soft shadows, subtle paper texture, decorative but clean and uncluttered. " +
+      "ABSOLUTELY NO text, NO labels, NO map pins, NO markers — just the illustrated landscape map, leaving clean space along the coast. " +
+      STYLE,
+  },
   sentinel: {
     out: "sentinel.png",
     aspect: "16:9",
