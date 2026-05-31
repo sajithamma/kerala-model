@@ -155,12 +155,25 @@
   .srow .sno{font-family:"Space Mono",monospace;font-size:11px;color:var(--emerald);visibility:hidden}
   .srow.near .sno{visibility:visible}
   .srow .skm{font-family:"Space Mono",monospace;font-size:11.5px;color:#0b3a2c;opacity:.78;margin-left:auto}
-  .viz.map .panel.tall{height:172px}
+  .viz.map .panel.tall,.viz.ledger .panel.tall{height:172px}
   @media(max-width:680px){
     .srow .sno{display:none}.srow .sname{min-width:0;flex:1}
     .viz .vlabel{font-size:9px;max-width:54%;line-height:1.35}
     .viz .readout .big{font-size:26px}
   }
+
+  /* TaxTrail (ledger) variant */
+  .viz.ledger{background:linear-gradient(180deg,#f3f1ea 0%,#eef1ec 58%,#e7ece6 100%)}
+  .tledger{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+  .trow{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:#0b3a2c}
+  .trow .tlbl{opacity:.82}
+  .trow .tval{font-family:"Space Mono",monospace;font-weight:700}
+  .trow.net{color:var(--emerald)}
+  .trow.net .tlbl{opacity:1;font-weight:600}
+  .trow.net .tval{font-size:14.5px}
+  .trow.flag .tval{color:var(--coral)}
+  .trow.status .tval{color:#9bb0a6}
+  .trow.status.filed .tval{color:var(--emerald)}
 
   footer{position:relative;z-index:1;padding:120px 0 90px;text-align:center}
   footer .big{font-weight:600;font-size:clamp(28px,5.2vw,60px);line-height:1.12;letter-spacing:-.025em}
@@ -299,6 +312,23 @@
       <div class="foot">
         <div class="row"><span class="lbl">Impact</span><span class="val">Small businesses stay compliant without fear, recover missed refunds, and spend less on audits — felt across every market town.</span></div>
         <div class="row"><span class="lbl">Backed by</span><span class="chips"><span class="chip">State GST / Commercial Taxes Dept</span><span class="chip">MSME / Industries Dept</span></span></div>
+      </div>
+
+      <div class="viz ledger" id="taxviz">
+        <canvas id="tax-canvas"></canvas>
+        <div class="vlabel"><span class="dot"></span> AI · auditing GST</div>
+        <div class="readout"><div class="big" id="tax-net">₹0</div><div class="sub">net GST payable · FY 2024–25</div></div>
+        <div class="panel tall">
+          <div class="ptitle"><span>Bank statement + bills → reconciled</span><span class="leg"><b>● filed</b> &nbsp; <i>● flagged</i></span></div>
+          <div class="tledger">
+            <div class="trow"><span class="tlbl">Invoices reconciled</span><span class="tval" id="tax-recon">0 / 50</span></div>
+            <div class="trow"><span class="tlbl">Output GST (collected)</span><span class="tval" id="tax-out">₹0</span></div>
+            <div class="trow"><span class="tlbl">Input GST (credit)</span><span class="tval" id="tax-in">₹0</span></div>
+            <div class="trow net"><span class="tlbl">Net GST payable</span><span class="tval" id="tax-netl">₹0</span></div>
+            <div class="trow flag"><span class="tlbl">Mismatches flagged</span><span class="tval" id="tax-flag">0</span></div>
+            <div class="trow status"><span class="tlbl">Return status</span><span class="tval" id="tax-status">processing…</span></div>
+          </div>
+        </div>
       </div>
     </article>
 
@@ -1084,6 +1114,151 @@ function loop(){
   }
 
   const sway=Math.sin(t*0.1)*1.0;
+  camera.position.set(sway,0,CAMZ); camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const wrap=document.getElementById('taxviz');
+const canvas=document.getElementById('tax-canvas');
+const elNet=document.getElementById('tax-net'), elRecon=document.getElementById('tax-recon');
+const elOut=document.getElementById('tax-out'), elIn=document.getElementById('tax-in');
+const elNetl=document.getElementById('tax-netl'), elFlag=document.getElementById('tax-flag');
+const elStatus=document.getElementById('tax-status'), statusRow=elStatus.closest('.trow');
+const EMER=0x0f5132, CORAL=0xcf472f;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const V=(x,y,z=0)=>new THREE.Vector3(x,y,z);
+function inr(n){n=Math.round(n);let s=Math.abs(n).toString();let l3=s.slice(-3),rest=s.slice(0,-3);if(rest)l3=','+l3;rest=rest.replace(/\B(?=(\d{2})+(?!\d))/g,',');return (n<0?'-₹':'₹')+rest+l3;}
+
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(42,1,0.1,200);
+scene.add(new THREE.HemisphereLight(0xffffff,0xc7cdc2,1.1));
+const dl=new THREE.DirectionalLight(0xffffff,.7); dl.position.set(1,4,9); scene.add(dl);
+const CAMZ=19, WORLD_W=18.5, WORLD_H=9;
+const world=new THREE.Group(); scene.add(world);
+
+function rr(x,w,h,r){x.beginPath();x.roundRect(-w/2,-h/2,w,h,r);}
+// document texture (mini invoice)
+function docTex(amt){
+  const c=document.createElement('canvas');c.width=240;c.height=320;const x=c.getContext('2d');
+  x.save();x.translate(120,160);
+  x.fillStyle='#ffffff';x.strokeStyle='rgba(15,81,50,.18)';x.lineWidth=4;rr(x,224,304,16);x.fill();x.stroke();
+  x.restore();
+  x.fillStyle=EMERHEX;x.fillRect(20,24,200,34);
+  x.fillStyle='#fff';x.font='700 20px ui-monospace,monospace';x.textAlign='left';x.fillText('TAX INVOICE',32,48);
+  x.fillStyle='rgba(11,58,44,.5)';for(let i=0;i<4;i++){x.fillRect(28,86+i*22,150-i*18,7);}
+  x.fillStyle='#0b3a2c';x.font='700 18px ui-monospace,monospace';x.fillText('GST 18%',28,206);
+  x.font='700 30px ui-monospace,monospace';x.fillStyle=EMERHEX;x.textAlign='right';x.fillText(inr(amt),212,280);
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;
+}
+const EMERHEX='#0f5132';
+function stampTex(ok){
+  const c=document.createElement('canvas');c.width=120;c.height=120;const x=c.getContext('2d');
+  x.translate(60,60);x.fillStyle=ok?'#0f5132':'#cf472f';x.beginPath();x.arc(0,0,52,0,7);x.fill();
+  x.strokeStyle='#fff';x.lineWidth=9;x.lineCap='round';
+  if(ok){x.beginPath();x.moveTo(-22,2);x.lineTo(-6,20);x.lineTo(26,-20);x.stroke();}
+  else{x.beginPath();x.moveTo(0,-22);x.lineTo(0,8);x.stroke();x.beginPath();x.arc(0,24,5,0,7);x.fillStyle='#fff';x.fill();}
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;
+}
+function labelTex(text,col){
+  const c=document.createElement('canvas');c.width=300;c.height=90;const x=c.getContext('2d');
+  x.save();x.translate(150,45);x.fillStyle='rgba(255,255,255,.95)';x.strokeStyle=col;x.lineWidth=5;rr(x,288,78,20);x.fill();x.stroke();x.restore();
+  x.fillStyle=col;x.font='700 30px ui-monospace,monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(text,150,46);
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;
+}
+function plate(tex,w,h,pos){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true}));m.position.copy(pos);world.add(m);return m;}
+
+const INBOX=V(-7.2,0,0), SCAN=V(0,0,0), TRAY_OK=V(7.2,1.8,0), TRAY_NG=V(7.2,-1.8,0);
+// inbox + trays + emblem
+plate(labelTex('BILLS · BANK','#0f5132'),3.0,0.9,V(-7.2,2.0,0));
+plate(labelTex('FILED ✓','#0f5132'),2.7,0.8,V(7.2,3.0,0));
+plate(labelTex('FLAGGED','#cf472f'),2.7,0.8,V(7.2,-3.0,0));
+plate(labelTex('GST · AI AUDIT','#0f5132'),3.4,0.9,V(0,3.0,0));
+// tray plates (landing)
+const trayOk=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.7),new THREE.MeshBasicMaterial({color:0xdfeee5,transparent:true,opacity:.8}));trayOk.position.copy(TRAY_OK).setZ(-.15);world.add(trayOk);
+const trayNg=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.7),new THREE.MeshBasicMaterial({color:0xf3dcd6,transparent:true,opacity:.8}));trayNg.position.copy(TRAY_NG).setZ(-.15);world.add(trayNg);
+
+// conveyor guide lines
+function seg(a,b,op){const g=new THREE.BufferGeometry().setFromPoints([a,b]);return new THREE.Line(g,new THREE.LineBasicMaterial({color:EMER,transparent:true,opacity:op}));}
+world.add(seg(INBOX,SCAN,.14)); world.add(seg(SCAN,TRAY_OK,.12)); world.add(seg(SCAN,TRAY_NG,.12));
+
+// scanner beam
+const beam=new THREE.Mesh(new THREE.PlaneGeometry(0.55,5.4),new THREE.MeshBasicMaterial({color:EMER,transparent:true,opacity:.16}));
+beam.position.set(0,0,.1); world.add(beam);
+
+// documents
+const amts=[2400,18000,7600,42000,9900,15500,3300];
+const NDOC=7;
+const docTexes=amts.map(a=>docTex(a));
+const docs=[];
+for(let i=0;i<NDOC;i++){
+  const g=new THREE.Group();
+  const paper=new THREE.Mesh(new THREE.PlaneGeometry(1.4,1.86),new THREE.MeshBasicMaterial({map:docTexes[i],transparent:true}));
+  const verdict = (i===3)?1:0;            // one flagged in the loop
+  const badge=new THREE.Mesh(new THREE.PlaneGeometry(.78,.78),new THREE.MeshBasicMaterial({map:stampTex(verdict===0),transparent:true}));
+  badge.position.set(.5,.78,.05); badge.scale.setScalar(.001);
+  g.add(paper,badge); world.add(g);
+  docs.push({g,paper,badge,verdict,i});
+}
+
+function frame(){
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+  const vh=CAMZ*Math.tan(camera.fov*Math.PI/360), vw=vh*camera.aspect;
+  const pf=Math.min(.55,190/h);
+  const s=Math.min(2*vw*0.95/WORLD_W, 2*vh*(1-pf)*0.94/WORLD_H);
+  world.scale.setScalar(s); world.position.y=vh*pf;
+}
+new ResizeObserver(frame).observe(wrap); frame();
+
+let running=false;
+new IntersectionObserver(es=>{es.forEach(e=>{running=e.isIntersecting;if(running)loop();});},{threshold:.05}).observe(wrap);
+
+const Tc=9.0;
+const clock=new THREE.Clock(); let t=0;
+function loop(){
+  if(!running) return;
+  requestAnimationFrame(loop);
+  t+=Math.min(clock.getDelta(),0.05);
+
+  // documents along the conveyor
+  let nearest=99;
+  for(const d of docs){
+    const u=(t*0.13 + d.i/NDOC)%1;
+    let pos;
+    if(u<0.5){pos=INBOX.clone().lerp(SCAN,ease(u/0.5));}
+    else{const tray=d.verdict?TRAY_NG:TRAY_OK;pos=SCAN.clone().lerp(tray,ease((u-0.5)/0.5));}
+    pos.y+=Math.sin(u*Math.PI)*0.25; pos.z=0;
+    d.g.position.copy(pos);
+    d.g.rotation.z=Math.sin(t*0.8+d.i)*0.05;
+    d.paper.material.opacity=clamp(Math.min(u/0.05,(1-u)/0.05),0,1);
+    const bs=clamp((u-0.47)/0.05,0,1); d.badge.scale.setScalar(bs*1.0+0.001);
+    d.badge.material.opacity=d.paper.material.opacity;
+    nearest=Math.min(nearest,Math.abs(pos.x));
+  }
+  beam.material.opacity=0.12+0.4*clamp(1-nearest/0.7,0,1)+0.05*Math.sin(t*6);
+
+  // ledger counters
+  const pc=clamp((t%Tc)/(Tc*0.78),0,1);
+  const out=pc*480000, ino=pc*390000, net=out-ino;
+  elNet.textContent=inr(net);
+  elNetl.textContent=inr(net);
+  elOut.textContent=inr(out);
+  elIn.textContent=inr(ino);
+  elRecon.textContent=Math.round(pc*50)+' / 50';
+  elFlag.textContent=Math.round(pc*3);
+  const done=pc>=1;
+  elStatus.textContent=done?'FILED ✓':'processing…';
+  statusRow.classList.toggle('filed',done);
+
+  const sway=Math.sin(t*0.1)*0.9;
   camera.position.set(sway,0,CAMZ); camera.lookAt(0,0,0);
   renderer.render(scene,camera);
 }
