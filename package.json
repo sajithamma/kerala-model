@@ -1,0 +1,16 @@
+{
+  "name": "kerala-model",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Kerala Model — AI ideas presentation + Gemini (fal nano-banana) image generation.",
+  "scripts": {
+    "image": "node --env-file=.env scripts/generate-image.mjs"
+  },
+  "dependencies": {
+    "@fal-ai/client": "^1.2.0"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.1.0"
+  }
+}
