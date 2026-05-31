@@ -30,7 +30,8 @@
 <meta name="twitter:image" content="https://kerala.1boxai.com/assets/og-image.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" /></noscript>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
 </script>
@@ -59,6 +60,15 @@
     overflow-x:hidden;-webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+  /* first-paint loader */
+  #loader{position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .55s ease}
+  #loader.hide{opacity:0;pointer-events:none}
+  #loader .kmark{width:54px;height:54px;border-radius:14px;background:var(--emerald);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:30px;color:var(--gold);animation:lpulse 1.4s ease-in-out infinite}
+  #loader .ring{width:42px;height:42px;border-radius:50%;border:3px solid rgba(15,81,50,.16);border-top-color:var(--emerald);animation:spin .8s linear infinite}
+  #loader .ltext{font-family:"Space Mono",monospace,monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--moss)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes lpulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 
   .glow{position:fixed;border-radius:50%;filter:blur(110px);opacity:.16;z-index:0;pointer-events:none}
   .glow.a{width:560px;height:560px;background:radial-gradient(circle,#1f7a63,transparent 70%);top:-180px;right:-140px}
@@ -244,6 +254,11 @@
 </style>
 </head>
 <body>
+<div id="loader"><div class="kmark">K</div><div class="ring"></div><div class="ltext">Loading…</div></div>
+<script>
+(function(){var l=document.getElementById('loader');function hide(){if(!l)return;l.classList.add('hide');setTimeout(function(){l.style.display='none';},600);}
+document.addEventListener('DOMContentLoaded',hide);window.addEventListener('load',hide);setTimeout(hide,3000);if(document.readyState!=='loading')hide();})();
+</script>
 <div class="glow a"></div>
 <div class="glow b"></div>
 
