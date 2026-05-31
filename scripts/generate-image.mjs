@@ -110,6 +110,34 @@ const PRESETS = {
       "ABSOLUTELY NO text, NO labels, NO map pins, NO markers — just the illustrated landscape map, leaving clean space along the coast. " +
       STYLE,
   },
+  bloom: {
+    out: "bloom.png",
+    aspect: "16:9",
+    prompt:
+      "A warm, tasteful, respectful product photo communicating a private AI companion for women's health. " +
+      "Scene: a young Indian woman relaxing comfortably at home — soft cosy interior, a plant, warm natural light — " +
+      "holding a smartphone, calm and reassured (fully clothed, modest, no nudity). " +
+      "The phone screen, in sharp focus, shows a gentle private wellness app titled 'Bloom AI' with: a soft circular " +
+      "cycle tracker reading 'Day 14 · ovulation', an insight card 'Next period in ~14 days', a small line " +
+      "'Ask me anything, privately', and a small privacy lock icon. " +
+      "Soft pastel-and-green rounded friendly UI, photoreal, supportive and private mood, shallow depth of field with the screen sharp. " +
+      "Meaning obvious at a glance: a private, judgment-free women's-health companion. " +
+      STYLE,
+  },
+  carepoint: {
+    out: "carepoint.png",
+    aspect: "16:9",
+    prompt:
+      "A clear, self-explanatory product photo communicating: tell the app your medical need and it finds the nearest " +
+      "affordable GOVERNMENT health facility. " +
+      "Scene: a caregiver / ordinary person in a bright hospital corridor in Kerala, looking relieved, holding a smartphone. " +
+      "The phone screen, in sharp focus, shows an app titled 'CarePoint AI' with a result card: a line 'You need: CT Scan', " +
+      "a recommended facility 'Govt Medical College — 2.4 km', a cost comparison '₹1,500 govt  vs  ₹6,000 private', " +
+      "a green 'Available today' tag, and a small map with a directions route. " +
+      "Clean white-and-green medical UI, crisp legible text, photoreal, shallow depth of field with the phone screen sharp. " +
+      "Meaning obvious at a glance: your problem → nearest cheap government facility, with cost and directions. " +
+      STYLE,
+  },
   sentinel: {
     out: "sentinel.png",
     aspect: "16:9",
